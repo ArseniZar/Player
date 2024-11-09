@@ -5,15 +5,13 @@ import java.awt.event.ActionListener;
 
 public class MediaPlayerView extends JFrame {
     // Кнопки управления
-    private JButton playStopButton; // Объединенная кнопка "Play"/"Stop"
-    private JButton backButton; // Кнопка для перехода на предыдущий трек
-    private JButton nextButton; // Кнопка для перехода на следующий трек
+    private JButton playStopButton;
+    private JButton backButton;
+    private JButton nextButton;
 
-    // private JProgressBar progressBar;
-    private JLabel trackLabel; // Метка для отображения текущего трека
+    private JLabel trackLabel;
     private JSlider volumeSlider;
-    private JSlider slider;
-    // Ползунок для громкости
+    private JProgressBar progressBar;
 
     public MediaPlayerView(int volume) {
         // Настройки окна
@@ -23,41 +21,45 @@ public class MediaPlayerView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Панель для заголовка
+        
         JPanel titlePanel = createTitlePanel();
-
-        // Панель для кнопок управления
         JPanel controlPanel = createControlPanel();
-
-        // Панель с изображением и меткой трека
         JPanel imagePanel = createImagePanel();
-
         JPanel trackPanel = createTrackPanel();
-        // Панель с элементами управления (сетка)
-        JPanel panel = createMainPanel(titlePanel, controlPanel, imagePanel,trackPanel);
+        JPanel volumePanel = createVolumeSlider();
+        JPanel progressBarPanel = createProgressBar();
 
         
-        // Размещение панели с элементами управления в окно
-        add(panel, BorderLayout.NORTH);
+        JPanel mainPanel = createMainPanel(titlePanel, controlPanel, imagePanel, trackPanel,volumePanel,progressBarPanel);
 
-        // Отображение окна
+        add(mainPanel, BorderLayout.CENTER);
+
         setVisible(true);
     }
 
-    // private JPanel createProgressBar(){
-    // // Создаем строку для прогресса
-    // JPanel progressPanel = new JPanel(new BorderLayout());
-    // progressPanel.setBackground(Color.DARK_GRAY);
+    private JPanel createVolumeSlider() {
+        JPanel volumePanel = new JPanel(new BorderLayout());
+        volumeSlider = new JSlider(0, 100, 50);
+        volumeSlider.setMajorTickSpacing(10);
+        volumeSlider.setMinorTickSpacing(5);
+        volumeSlider.setBackground(Color.DARK_GRAY);
+        volumeSlider.setPreferredSize(new Dimension(200, 50));
+        volumePanel.add(volumeSlider);
+        return volumePanel;
+    }
 
-    // progressBar = new JProgressBar(0, 100);
-    // progressBar.setPreferredSize(new Dimension(300, 25));
-    // progressBar.setBackground(Color.GRAY);
-    // progressBar.setForeground(Color.GREEN);
-    // progressPanel.add(progressBar, BorderLayout.CENTER);
-    // return progressPanel;
-    // }
+    private JPanel createProgressBar() {
+        JPanel progressPanel = new JPanel(new BorderLayout());
+        progressPanel.setBackground(Color.DARK_GRAY);
 
-    // Создание панели для заголовка
+        progressBar = new JProgressBar(0, 100);
+        progressBar.setPreferredSize(new Dimension(150, 6));
+        progressBar.setBackground(Color.DARK_GRAY);
+        progressBar.setForeground(Color.WHITE);
+        progressPanel.add(progressBar, BorderLayout.CENTER);
+        return progressPanel;
+    }
+
     private JPanel createTitlePanel() {
         JPanel titlePanel = new JPanel();
         titlePanel.setBackground(Color.DARK_GRAY);
@@ -68,8 +70,7 @@ public class MediaPlayerView extends JFrame {
         titlePanel.setPreferredSize(new Dimension(300, 50));
         return titlePanel;
     }
-    
-    // Создание панели для кнопок управления
+
     private JPanel createControlPanel() {
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new FlowLayout());
@@ -90,7 +91,6 @@ public class MediaPlayerView extends JFrame {
         return controlPanel;
     }
 
-    // Создание панели для изображения
     private JPanel createImagePanel() {
         JPanel imagePanel = new JPanel();
         imagePanel.setPreferredSize(new Dimension(300, 300));
@@ -98,22 +98,10 @@ public class MediaPlayerView extends JFrame {
         imagePanel.setLayout(new BorderLayout());
         String imagePath = "/home/ars/Documents/Code development/Java/player/extracted_cover.jpg";
         ImageIcon imageIcon = new ImageIcon(imagePath);
-
-        // Get the image from ImageIcon
-        Image image = imageIcon.getImage();
-
-        // Scale the image to a fixed size (e.g., 300x300)
-        image = image.getScaledInstance(300, 300, Image.SCALE_SMOOTH);
-
-        // Update the ImageIcon with the new scaled image
+        Image image = imageIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
         imageIcon = new ImageIcon(image);
-
-        // Create JLabel and set the ImageIcon
         JLabel imageLabel = new JLabel(imageIcon);
-
-        // Add JLabel with the image to the JPanel
         imagePanel.add(imageLabel, BorderLayout.CENTER);
-
         return imagePanel;
     }
 
@@ -131,28 +119,13 @@ public class MediaPlayerView extends JFrame {
         return createTrackPanel;
     }
 
-    // Создание главной панели с элементами управления
-    private JPanel createMainPanel(JPanel titlePanel, JPanel controlPanel, JPanel imagePanel , JPanel trackPanel) {
+    private JPanel createMainPanel(JPanel titlePanel, JPanel controlPanel, JPanel imagePanel, JPanel trackPanel, JPanel volumePanel, JPanel progressBarPanel) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.DARK_GRAY);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 25, 10, 25);
 
-        // Ползунок громкости
-        volumeSlider = new JSlider(0, 100, 50);
-        volumeSlider.setMajorTickSpacing(10);
-        volumeSlider.setMinorTickSpacing(5);
-        volumeSlider.setBackground(Color.DARK_GRAY);
-        volumeSlider.setPreferredSize(new Dimension(200, 50));
-
-        slider = new JSlider(0, 100, 0);
-        slider.setMajorTickSpacing(10);
-        slider.setMinorTickSpacing(5);
-        slider.setBackground(Color.DARK_GRAY);
-        slider.setPreferredSize(new Dimension(300, 50));
-
-        // Размещение компонентов на панели
         gbc.gridwidth = 2;
         panel.add(titlePanel, gbc);
 
@@ -164,10 +137,10 @@ public class MediaPlayerView extends JFrame {
         panel.add(trackPanel, gbc);
 
         gbc.gridy = 3;
-        panel.add(volumeSlider, gbc);
+        panel.add(volumePanel, gbc);
 
         gbc.gridy = 4;
-        panel.add(slider, gbc);
+        panel.add(progressBarPanel, gbc);
 
         gbc.gridy = 5;
         panel.add(controlPanel, gbc);
@@ -175,28 +148,26 @@ public class MediaPlayerView extends JFrame {
         return panel;
     }
 
-    // Методы для обновления информации на экране и получения значений
     public void setTrackLabel(String text) {
         trackLabel.setText(text);
-    }
-
-    public int getSlider() {
-        return slider.getValue();
-    }
-
-    public void setSlider(int progress) {
-        slider.setValue(progress);
     }
 
     public int getVolume() {
         return volumeSlider.getValue();
     }
 
-    public void setImage(byte[] img) {
-
+    public void setVolume(int level) {
+        volumeSlider.setValue(level);
     }
 
-    // Методы для добавления слушателей
+    public int getProgressBar() {
+        return progressBar.getValue();
+    }
+
+    public void setProgressBar(int progress) {
+        progressBar.setValue(progress);
+    }
+
     public void addVolumeChangeListener(ChangeListener listener) {
         volumeSlider.addChangeListener(listener);
     }
@@ -213,7 +184,6 @@ public class MediaPlayerView extends JFrame {
         nextButton.addActionListener(listenForNextButton);
     }
 
-    // Метод для изменения текста на кнопке Play/Stop
     public void setPlayStopButtonText(String text) {
         playStopButton.setText(text);
     }
