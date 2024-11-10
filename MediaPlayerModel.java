@@ -5,22 +5,23 @@ import java.util.ArrayList;
 import java.util.List;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
-import observer.*;
+import interfaces.*;
+import interfaces.observer.*;
 
-
-public class MediaPlayerModel implements Subject {
-    private final List<ObserverTreck> observers1 = new ArrayList<>();
-    private final List<ObserverPlay> observers2 = new ArrayList<>();
+public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
+    private final List<Observer2> observers2 = new ArrayList<>();
     private final List<File> files = new ArrayList<>();
+    private MediaPlayerController mediaPlayerController;
     private String currentTrack;
     private Player player;
     private boolean isPlaying = false;
     private File currentFile = null;
     private int currentIndex = 0;
-    private float volume = 0; // Громкость в диапазоне от 0 до 100
+    private int volume = 0;
 
-    public MediaPlayerModel(float volume) {
-        this.volume = volume;
+    public MediaPlayerModel(int volume) {
+        this.volume= volume;
+        setVolumePlayer(volume);
         loadMusicFiles();
         if (!files.isEmpty()) {
             setCurrentFile(0);
@@ -28,6 +29,38 @@ public class MediaPlayerModel implements Subject {
         } else {
             System.out.println("No MP3 files found in the directory.");
         }
+    }
+
+    public void start_Observer(MediaPlayerController mediaPlayerController) {
+        this.mediaPlayerController = mediaPlayerController;
+        mediaPlayerController.addObserver(new Observer1() {
+
+            @Override
+            public void onPlay() {
+                play();
+            }
+
+            @Override
+            public void onStop() {
+                stop();
+            }
+
+            @Override
+            public void setVolume(int level) {
+                setVolumePlayer(level);
+            }
+
+            @Override
+            public void onNext() {
+                next();
+            }
+
+            @Override
+            public void onBack() {
+                back();
+            }
+
+        });
     }
 
     private void loadMusicFiles() {
@@ -54,40 +87,6 @@ public class MediaPlayerModel implements Subject {
         }
     }
 
-    @Override
-    public void addObserver1(ObserverTreck observer) {
-        observers1.add(observer);
-    }
-
-    @Override
-    public void removeObserver1(ObserverTreck observer) {
-        observers1.remove(observer);
-    }
-
-    @Override
-    public void notifyObservers1(String message) {
-        for (ObserverTreck observer : observers1) {
-            observer.update(message);
-        }
-    }
-
-    @Override
-    public void addObserver2(ObserverPlay observer) {
-        observers2.add(observer);
-    }
-
-    @Override
-    public void removeObserver2(ObserverPlay observer) {
-        observers2.remove(observer);
-    }
-
-    @Override
-    public void notifyObservers2(String message) {
-        for (ObserverPlay observer : observers2) {
-            observer.update(message);
-        }
-    }
-
     public void play() {
         if (isPlaying) {
             System.out.println("Music is already playing.");
@@ -104,8 +103,8 @@ public class MediaPlayerModel implements Subject {
                 player = new Player(fileInputStream);
                 currentTrack = currentFile.getName();
                 isPlaying = true;
-                notifyObservers1("Playing track: " + currentTrack);
-                notifyObservers2("Stopped");
+                notifyObservers(observer -> observer.setLabelTrack("Playing track: " + currentTrack));
+                notifyObservers(observer -> observer.setLabelButton("Stoping"));
                 System.out.println("Playing: " + currentTrack);
 
                 // Применяем громкость перед воспроизведением
@@ -117,7 +116,7 @@ public class MediaPlayerModel implements Subject {
                 e.printStackTrace();
             } finally {
                 isPlaying = false;
-                notifyObservers1("Stopped track: " + currentTrack);
+                notifyObservers(observer -> observer.setLabelTrack("Stopped track: " + currentTrack));
             }
         }).start();
     }
@@ -127,8 +126,8 @@ public class MediaPlayerModel implements Subject {
             player.close();
             player = null;
             isPlaying = false;
-            notifyObservers1("Stopped track: " + currentTrack);
-            notifyObservers2("Playing");
+            notifyObservers(observer -> observer.setLabelTrack("Stopped track: " + currentTrack));
+            notifyObservers(observer -> observer.setLabelButton("Playing"));
         } else {
             System.out.println("No music is playing.");
         }
@@ -175,7 +174,7 @@ public class MediaPlayerModel implements Subject {
         play();
     }
 
-    public void setVolume(int newVolume) {
+    public void setVolumePlayer(int newVolume) {
         try {
             this.volume = newVolume;
             adjustVolume((float) newVolume);
@@ -195,4 +194,22 @@ public class MediaPlayerModel implements Subject {
             System.out.println("Error adjusting volume: " + e.getMessage());
         }
     }
+
+    @Override
+    public void addObserver(Observer2 observer) {
+        observers2.add(observer);
+    }
+
+    @Override
+    public void removeObserver(Observer2 observer) {
+        observers2.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Action<Observer2> action) {
+        for (Observer2 observer : observers2) {
+            action.execute(observer);
+        }
+    }
+
 }

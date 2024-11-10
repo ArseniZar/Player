@@ -1,9 +1,9 @@
-import com.mpatric.mp3agic.*;
-
+import com.mpatric.mp3agic.Mp3File;
+import com.mpatric.mp3agic.ID3v2;
 import java.io.File;
 
 public class Mp3ImageExtractor {
-    public byte[] getImage(File mp3File){
+    public byte[] getImage(File mp3File) {
         try {
             // Загружаем MP3 файл
             Mp3File mp3 = new Mp3File(mp3File);
