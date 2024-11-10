@@ -11,6 +11,8 @@ import interfaces.observer.*;
 public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private final List<Observer2> observers2 = new ArrayList<>();
     private final List<File> files = new ArrayList<>();
+
+    @SuppressWarnings("unused")
     private MediaPlayerController mediaPlayerController;
     private String currentTrack;
     private Player player;
@@ -65,6 +67,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
 
     private void loadMusicFiles() {
         File folder = new File("/home/ars/Documents/Code development/Java/player/music");
+        @SuppressWarnings("unused")
         File[] tempFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".mp3"));
         if (tempFiles != null) {
             for (File file : tempFiles) {
@@ -187,6 +190,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private void adjustVolume(float volume) {
         try {
             String command = "amixer set Master " + volume + "%";
+            @SuppressWarnings("deprecation")
             Process process = Runtime.getRuntime().exec(command);
             process.waitFor(); // Дожидаемся завершения выполнения команды
             System.out.println("Volume set to: " + volume + "%");

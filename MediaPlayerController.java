@@ -35,7 +35,7 @@ public class MediaPlayerController implements Subject<Observer1, Action<Observer
             }
         });
 
-        view.addVolumeChangeListener(e -> {
+        view.addVolumeChangeListener(_ -> {
             int level = (view.getVolume());
             notifyObservers(observer -> observer.setVolume(level));
 
