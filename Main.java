@@ -1,11 +1,15 @@
+import gui.MediaPlayerView;
+
 public class Main {
-    public static final int LEVEL = 50;
+    public static final int LEVEL = 10;
+    public static final String FOLDER_MUSIC = "/home/ars/Documents/Code development/Java/player/music";
+    public static final String DEFAULT_IMG = "/home/ars/Documents/Code development/Java/player/img/note.png";
 
     public static void main(String[] args) {
 
-        MediaPlayerView view = new MediaPlayerView(LEVEL);
-        MediaPlayerModel model = new MediaPlayerModel(LEVEL);
+        MediaPlayerView view = new MediaPlayerView(LEVEL,DEFAULT_IMG);
         MediaPlayerController controller = new MediaPlayerController(view);
+        MediaPlayerModel model = new MediaPlayerModel(FOLDER_MUSIC, DEFAULT_IMG, LEVEL);
         controller.start_Observer(model);
         model.start_Observer(controller);
 

@@ -1,5 +1,7 @@
 package interfaces.observer;
 
+import java.awt.image.BufferedImage;
+
 public interface Observer2 {
     void setProgressBar(int level);
 
@@ -9,6 +11,6 @@ public interface Observer2 {
 
     void setVolume(int level);
 
-    void setImg(byte[] img);
+    void setImg(BufferedImage img);
 
 }

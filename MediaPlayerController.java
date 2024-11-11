@@ -1,7 +1,10 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+
+import gui.MediaPlayerView;
 import interfaces.*;
 import interfaces.observer.*;
 
@@ -68,8 +71,8 @@ public class MediaPlayerController implements Subject<Observer1, Action<Observer
             }
 
             @Override
-            public void setImg(byte[] img) {
-                
+            public void setImg(BufferedImage img) {
+                view.setImage(img);
             }
 
         });

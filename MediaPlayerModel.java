@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -10,27 +11,20 @@ import interfaces.observer.*;
 
 public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private final List<Observer2> observers2 = new ArrayList<>();
-    private final List<File> files = new ArrayList<>();
 
     @SuppressWarnings("unused")
     private MediaPlayerController mediaPlayerController;
-    private String currentTrack;
+    private VolumeControl volumeControl;
+    private MusicFileLoader musicFileLoader;
+    private Mp3ImageExtractor mp3ImageExtractor;
     private Player player;
     private boolean isPlaying = false;
-    private File currentFile = null;
-    private int currentIndex = 0;
-    private int volume = 0;
 
-    public MediaPlayerModel(int volume) {
-        this.volume= volume;
-        setVolumePlayer(volume);
-        loadMusicFiles();
-        if (!files.isEmpty()) {
-            setCurrentFile(0);
-            System.out.println("Number of MP3 files found: " + files.size());
-        } else {
-            System.out.println("No MP3 files found in the directory.");
-        }
+    public MediaPlayerModel(String folderMusic, String defaultImg, int volume) {
+        volumeControl = new VolumeControl(volume, this);
+        musicFileLoader = new MusicFileLoader(folderMusic);
+        mp3ImageExtractor = new Mp3ImageExtractor(defaultImg);
+        mp3ImageExtractor.getImage(musicFileLoader.getCurrentFile());
     }
 
     public void start_Observer(MediaPlayerController mediaPlayerController) {
@@ -49,7 +43,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
 
             @Override
             public void setVolume(int level) {
-                setVolumePlayer(level);
+                volumeControl.setVolume(level);
             }
 
             @Override
@@ -65,32 +59,13 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
         });
     }
 
-    private void loadMusicFiles() {
-        File folder = new File("/home/ars/Documents/Code development/Java/player/music");
-        @SuppressWarnings("unused")
-        File[] tempFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".mp3"));
-        if (tempFiles != null) {
-            for (File file : tempFiles) {
-                files.add(file);
-                System.out.println(file.getName());
-            }
-        }
-    }
-
     public boolean isPlaying() {
         return isPlaying;
     }
 
-    private void setCurrentFile(int index) {
-        if (index >= 0 && index < files.size()) {
-            currentFile = files.get(index);
-            currentIndex = index;
-        } else {
-            System.out.println("Invalid file index.");
-        }
-    }
-
     public void play() {
+        File currentFile = musicFileLoader.getCurrentFile();
+        String currentTrack = musicFileLoader.getCurrentTrack();
         if (isPlaying) {
             System.out.println("Music is already playing.");
             return;
@@ -101,18 +76,20 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
             return;
         }
 
-        new Thread(() -> {
+        StreamHandler.startStream(_ -> {
             try (FileInputStream fileInputStream = new FileInputStream(currentFile)) {
                 player = new Player(fileInputStream);
-                currentTrack = currentFile.getName();
                 isPlaying = true;
+                BufferedImage img = mp3ImageExtractor.getImg();
+                if (img != null) {
+                    notifyObservers(observer -> observer.setImg(img));
+                } else {
+                    notifyObservers(observer -> observer.setImg(mp3ImageExtractor.getDefaultImg()));
+                }
+
                 notifyObservers(observer -> observer.setLabelTrack("Playing track: " + currentTrack));
                 notifyObservers(observer -> observer.setLabelButton("Stoping"));
                 System.out.println("Playing: " + currentTrack);
-
-                // Применяем громкость перед воспроизведением
-                adjustVolume(volume);
-
                 player.play();
             } catch (IOException | JavaLayerException e) {
                 System.err.println("Error during playback: " + e.getMessage());
@@ -121,82 +98,34 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                 isPlaying = false;
                 notifyObservers(observer -> observer.setLabelTrack("Stopped track: " + currentTrack));
             }
-        }).start();
+        });
     }
 
     public void stop() {
+
         if (player != null) {
             player.close();
             player = null;
             isPlaying = false;
-            notifyObservers(observer -> observer.setLabelTrack("Stopped track: " + currentTrack));
+            notifyObservers(observer -> observer.setLabelTrack("Stopped track: " + musicFileLoader.getCurrentTrack()));
             notifyObservers(observer -> observer.setLabelButton("Playing"));
         } else {
             System.out.println("No music is playing.");
         }
     }
 
-    // public void pause() {
-    // if (player != null) {
-    // if (isPlaying) {
-    // // Если музыка воспроизводится, приостанавливаем ее
-    // player.pause();
-    // isPlaying = false;
-    // notifyObservers1("Paused track: " + currentTrack);
-    // notifyObservers2("Paused");
-    // } else {
-    // // Если музыка уже приостановлена, выводим сообщение
-    // System.out.println("Music is already paused.");
-    // }
-    // } else {
-    // System.out.println("No music is playing.");
-    // }
-    // }
-
     public void next() {
-        if (files.isEmpty()) {
-            System.out.println("No tracks to play.");
-            return;
-        }
-
         stop();
-        currentIndex = (currentIndex + 1) % files.size();
-        setCurrentFile(currentIndex);
+        musicFileLoader.nextFile();
+        mp3ImageExtractor.getImage(musicFileLoader.getCurrentFile());
         play();
     }
 
     public void back() {
-        if (files.isEmpty()) {
-            System.out.println("No tracks to play.");
-            return;
-        }
-
         stop();
-        currentIndex = (currentIndex - 1 + files.size()) % files.size();
-        setCurrentFile(currentIndex);
+        musicFileLoader.backFile();
+        mp3ImageExtractor.getImage(musicFileLoader.getCurrentFile());
         play();
-    }
-
-    public void setVolumePlayer(int newVolume) {
-        try {
-            this.volume = newVolume;
-            adjustVolume((float) newVolume);
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid volume value: " + newVolume);
-        }
-    }
-
-    // Применение громкости через amixer
-    private void adjustVolume(float volume) {
-        try {
-            String command = "amixer set Master " + volume + "%";
-            @SuppressWarnings("deprecation")
-            Process process = Runtime.getRuntime().exec(command);
-            process.waitFor(); // Дожидаемся завершения выполнения команды
-            System.out.println("Volume set to: " + volume + "%");
-        } catch (IOException | InterruptedException e) {
-            System.out.println("Error adjusting volume: " + e.getMessage());
-        }
     }
 
     @Override

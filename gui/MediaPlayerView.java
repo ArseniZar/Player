@@ -1,7 +1,9 @@
+package gui;
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 
 public class MediaPlayerView extends JFrame {
     // Кнопки управления
@@ -10,18 +12,20 @@ public class MediaPlayerView extends JFrame {
     private JButton nextButton;
 
     private JLabel trackLabel;
+    private JLabel imageLabel;
     private JSlider volumeSlider;
     private JProgressBar progressBar;
+    private ImageIcon imageIcon;
 
-    public MediaPlayerView(int volume) {
+    public MediaPlayerView(int level, String defaultImg) {
         // Настройки окна
+        this.imageIcon = new ImageIcon(defaultImg);
         getContentPane().setBackground(Color.DARK_GRAY);
         setTitle("Media Player");
         setSize(500, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        
         JPanel titlePanel = createTitlePanel();
         JPanel controlPanel = createControlPanel();
         JPanel imagePanel = createImagePanel();
@@ -29,11 +33,11 @@ public class MediaPlayerView extends JFrame {
         JPanel volumePanel = createVolumeSlider();
         JPanel progressBarPanel = createProgressBar();
 
-        
-        JPanel mainPanel = createMainPanel(titlePanel, controlPanel, imagePanel, trackPanel,volumePanel,progressBarPanel);
+        JPanel mainPanel = createMainPanel(titlePanel, controlPanel, imagePanel, trackPanel, volumePanel,
+                progressBarPanel);
 
         add(mainPanel, BorderLayout.CENTER);
-
+        setVolume(level);
         setVisible(true);
     }
 
@@ -91,16 +95,25 @@ public class MediaPlayerView extends JFrame {
         return controlPanel;
     }
 
+    private Image createImageIconFromBufferedImage(BufferedImage bufferedImage) {
+        if (bufferedImage != null) {
+            // Масштабируем BufferedImage до нужного размера 300x300
+            Image image = bufferedImage.getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+            return image;
+        } else {
+            System.err.println("BufferedImage is null.");
+            return null;
+        }
+    }
+
     private JPanel createImagePanel() {
         JPanel imagePanel = new JPanel();
         imagePanel.setPreferredSize(new Dimension(300, 300));
         imagePanel.setBackground(Color.DARK_GRAY);
         imagePanel.setLayout(new BorderLayout());
-        String imagePath = "/home/ars/Documents/Code development/Java/player/extracted_cover.jpg";
-        ImageIcon imageIcon = new ImageIcon(imagePath);
         Image image = imageIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
         imageIcon = new ImageIcon(image);
-        JLabel imageLabel = new JLabel(imageIcon);
+        imageLabel = new JLabel(imageIcon);
         imagePanel.add(imageLabel, BorderLayout.CENTER);
         return imagePanel;
     }
@@ -119,7 +132,8 @@ public class MediaPlayerView extends JFrame {
         return createTrackPanel;
     }
 
-    private JPanel createMainPanel(JPanel titlePanel, JPanel controlPanel, JPanel imagePanel, JPanel trackPanel, JPanel volumePanel, JPanel progressBarPanel) {
+    private JPanel createMainPanel(JPanel titlePanel, JPanel controlPanel, JPanel imagePanel, JPanel trackPanel,
+            JPanel volumePanel, JPanel progressBarPanel) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.DARK_GRAY);
         GridBagConstraints gbc = new GridBagConstraints();
@@ -154,6 +168,12 @@ public class MediaPlayerView extends JFrame {
 
     public int getVolume() {
         return volumeSlider.getValue();
+    }
+
+    public void setImage(BufferedImage img) {
+        imageIcon.setImage(createImageIconFromBufferedImage(img));
+        imageLabel.revalidate();
+        imageLabel.repaint();
     }
 
     public void setVolume(int level) {
