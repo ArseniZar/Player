@@ -13,7 +13,7 @@ public class Mp3ImageExtractor {
     public Mp3ImageExtractor(String filePath) {
         this.defaultImg = fileToBufferedImage(filePath);
     }
-
+    
     public BufferedImage getDefaultImg() {
         return defaultImg;
     }
@@ -33,7 +33,13 @@ public class Mp3ImageExtractor {
         }
     }
 
-    public BufferedImage getImage(File mp3File) {
+    public void getImage(File mp3File) {
+
+        this.img = checkImgMeta(mp3File);
+
+    }
+
+    private BufferedImage checkImgMeta(File mp3File) {
         try {
             Mp3File mp3 = new Mp3File(mp3File);
             System.out.println("Файл MP3 загружен: " + mp3File.getName());
@@ -50,7 +56,6 @@ public class Mp3ImageExtractor {
                     // Преобразуем массив байтов в BufferedImage
                     ByteArrayInputStream bais = new ByteArrayInputStream(imageData);
                     BufferedImage image = ImageIO.read(bais);
-                    this.img = image;
                     System.out.println("Изображение извлечено из MP3.");
                     return image;
                 } else {

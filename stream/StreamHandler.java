@@ -1,5 +1,5 @@
+package stream;
 import interfaces.Action;
-
 public class StreamHandler {
     private static boolean isGood = true;
 
@@ -11,10 +11,10 @@ public class StreamHandler {
         }
     }
 
-    public static <T> void startStreamWithWhile(Action<T> action) {
+    public static <T> void startStreamWithWhile(Action<T> action , boolean index) {
         if (isGood) {
             new Thread(() -> {
-                while (isGood) {
+                while (isGood && index) {
 
                     action.execute(null);
                 }
@@ -25,4 +25,7 @@ public class StreamHandler {
     public static void stopStreams() {
         isGood = false;
     }
+
+
+    
 }

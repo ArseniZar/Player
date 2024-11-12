@@ -2,9 +2,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import stream.StreamHandler;
+
 public class VolumeControl {
     private int volume = 0;
-    private boolean isManualChange = false;
+    private volatile boolean  isManualChange = false;
     private MediaPlayerModel mediaPlayerModel;
 
     public VolumeControl(int volume, MediaPlayerModel mediaPlayerModel) {
@@ -59,19 +61,17 @@ public class VolumeControl {
 
     public void startVolumeCheckInBackground() {
         StreamHandler.startStreamWithWhile(_ -> {
-            if (!isManualChange) {
-                try {
-                    float currentVolume = getCurrentVolume();
-                    if (currentVolume != -1) {
-                        if (currentVolume != volume) {
-                            this.volume = (int) currentVolume;
-                            setVolume(volume);
-                            mediaPlayerModel.notifyObservers(observer -> observer.setVolume(volume));
-                        }
+            try {
+                float currentVolume = getCurrentVolume();
+                if (currentVolume != -1) {
+                    if (currentVolume != volume) {
+                        this.volume = (int) currentVolume;
+                        setVolume(volume);
+                        mediaPlayerModel.notifyObservers(observer -> observer.setVolume(volume));
                     }
-                } catch (Exception e) {
-                    System.out.println("Error checking volume: " + e.getMessage());
                 }
+            } catch (Exception e) {
+                System.out.println("Error checking volume: " + e.getMessage());
             }
 
             try {
@@ -80,7 +80,7 @@ public class VolumeControl {
                 System.out.println("Volume check thread interrupted: " + e.getMessage());
                 return;
             }
-        });
+        }, !isManualChange);
     }
 
     public void setManualChange(boolean isManualChange) {

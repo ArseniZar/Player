@@ -1,3 +1,5 @@
+import com.mpatric.mp3agic.BaseException;
+
 import gui.MediaPlayerView;
 
 public class Main {
@@ -5,7 +7,7 @@ public class Main {
     public static final String FOLDER_MUSIC = "/home/ars/Documents/Code development/Java/player/music";
     public static final String DEFAULT_IMG = "/home/ars/Documents/Code development/Java/player/img/note.png";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws BaseException {
 
         MediaPlayerView view = new MediaPlayerView(LEVEL,DEFAULT_IMG);
         MediaPlayerController controller = new MediaPlayerController(view);

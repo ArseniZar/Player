@@ -1,8 +1,13 @@
 package gui;
+
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
+
+import stream.StreamHandler;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 public class MediaPlayerView extends JFrame {
@@ -20,6 +25,7 @@ public class MediaPlayerView extends JFrame {
     public MediaPlayerView(int level, String defaultImg) {
         // Настройки окна
         this.imageIcon = new ImageIcon(defaultImg);
+        this.imageIcon.setImage(imageIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH));
         getContentPane().setBackground(Color.DARK_GRAY);
         setTitle("Media Player");
         setSize(500, 700);
@@ -38,6 +44,16 @@ public class MediaPlayerView extends JFrame {
 
         add(mainPanel, BorderLayout.CENTER);
         setVolume(level);
+
+        addWindowListener(new WindowAdapter() {
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                StreamHandler.stopStreams();
+                System.out.println("Окно закрывается, дополнительные действия выполнены.");
+            }
+        });
+
         setVisible(true);
     }
 
@@ -97,8 +113,7 @@ public class MediaPlayerView extends JFrame {
 
     private Image createImageIconFromBufferedImage(BufferedImage bufferedImage) {
         if (bufferedImage != null) {
-            // Масштабируем BufferedImage до нужного размера 300x300
-            Image image = bufferedImage.getScaledInstance(300, 300, Image.SCALE_SMOOTH);
+            Image image = bufferedImage;
             return image;
         } else {
             System.err.println("BufferedImage is null.");
@@ -111,8 +126,8 @@ public class MediaPlayerView extends JFrame {
         imagePanel.setPreferredSize(new Dimension(300, 300));
         imagePanel.setBackground(Color.DARK_GRAY);
         imagePanel.setLayout(new BorderLayout());
-        Image image = imageIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH);
-        imageIcon = new ImageIcon(image);
+        // Image image = imageIcon.getImage();
+        // imageIcon = new ImageIcon(image);
         imageLabel = new JLabel(imageIcon);
         imagePanel.add(imageLabel, BorderLayout.CENTER);
         return imagePanel;
@@ -171,7 +186,7 @@ public class MediaPlayerView extends JFrame {
     }
 
     public void setImage(BufferedImage img) {
-        imageIcon.setImage(createImageIconFromBufferedImage(img));
+        imageIcon.setImage(createImageIconFromBufferedImage(img).getScaledInstance(300, 300, Image.SCALE_SMOOTH));
         imageLabel.revalidate();
         imageLabel.repaint();
     }
