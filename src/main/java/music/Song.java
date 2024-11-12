@@ -1,3 +1,4 @@
+package src.main.java.music;
 import java.io.File;
 import java.io.IOException;
 import com.mpatric.mp3agic.InvalidDataException;

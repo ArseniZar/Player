@@ -1,8 +1,13 @@
+package src.main.java.volume;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-import stream.StreamHandler;
+import src.main.java.stream.StreamHandler;
+import src.main.java.model.MediaPlayerModel;
+
+
 
 public class VolumeControl {
     private int volume = 0;

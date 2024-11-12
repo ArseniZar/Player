@@ -1,3 +1,4 @@
+package src.main.java.img;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.ID3v2;
 import java.awt.image.BufferedImage;

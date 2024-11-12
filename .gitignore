@@ -1,3 +1,4 @@
-music/
+src/main/resources/music
+src/main/resources/music_test
 .vscode/
-shema.rnote
+src/main/resources/shema.rnote

@@ -1,12 +1,15 @@
+package src.main.java.control;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
-import gui.MediaPlayerView;
-import interfaces.*;
-import interfaces.observer.*;
+import src.main.java.gui.MediaPlayerView;
+import src.main.java.interfaces.*;
+import src.main.java.interfaces.observer.*;
+import src.main.java.model.MediaPlayerModel;
 
 public class MediaPlayerController implements Subject<Observer1, Action<Observer1>> {
     private final List<Observer1> observers1 = new ArrayList<>();

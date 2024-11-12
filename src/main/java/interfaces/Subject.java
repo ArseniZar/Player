@@ -1,4 +1,4 @@
-package interfaces;
+package src.main.java.interfaces;
 
 public interface Subject<T,N> {
     void addObserver(T observer);

@@ -1,11 +1,14 @@
+package src.main.java;
 import com.mpatric.mp3agic.BaseException;
 
-import gui.MediaPlayerView;
+import src.main.java.gui.MediaPlayerView;
+import src.main.java.model.MediaPlayerModel;
+import src.main.java.control.MediaPlayerController;
 
 public class Main {
     public static final int LEVEL = 10;
-    public static final String FOLDER_MUSIC = "/home/ars/Documents/Code development/Java/player/music";
-    public static final String DEFAULT_IMG = "/home/ars/Documents/Code development/Java/player/img/note.png";
+    public static final String FOLDER_MUSIC = "/home/ars/Documents/Code development/Java/player/src/main/resources/music";
+    public static final String DEFAULT_IMG = "/home/ars/Documents/Code development/Java/player/src/main/resources/img/note.png";
 
     public static void main(String[] args) throws BaseException {
 

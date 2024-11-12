@@ -1,4 +1,4 @@
-package interfaces;
+package src.main.java.interfaces;
 
 @FunctionalInterface
 public interface Action<T> {

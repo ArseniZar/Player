@@ -1,9 +1,9 @@
-package gui;
+package src.main.java.gui;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 
-import stream.StreamHandler;
+import src.main.java.stream.StreamHandler;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -11,7 +11,7 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 public class MediaPlayerView extends JFrame {
-    // Кнопки управления
+    
     private JButton playStopButton;
     private JButton backButton;
     private JButton nextButton;
@@ -155,10 +155,11 @@ public class MediaPlayerView extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(10, 25, 10, 25);
 
-        gbc.gridwidth = 2;
+        // gbc.gridwidth = 2;
+        gbc.gridy = 0;
         panel.add(titlePanel, gbc);
 
-        gbc.gridwidth = 1;
+        // gbc.gridwidth = 1;
         gbc.gridy = 1;
         panel.add(imagePanel, gbc);
 

@@ -1,5 +1,5 @@
-package stream;
-import interfaces.Action;
+package src.main.java.stream;
+import src.main.java.interfaces.Action;
 public class StreamHandler {
     private static boolean isGood = true;
 

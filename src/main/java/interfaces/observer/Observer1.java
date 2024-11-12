@@ -1,4 +1,4 @@
-package interfaces.observer;
+package src.main.java.interfaces.observer;
 
 public interface Observer1 {
     void onPlay();

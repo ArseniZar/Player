@@ -1,3 +1,5 @@
+package src.main.java.model;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,11 +9,16 @@ import java.util.List;
 
 import com.mpatric.mp3agic.UnsupportedTagException;
 
+import src.main.java.control.MediaPlayerController;
+import src.main.java.img.Mp3ImageExtractor;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
-import stream.StreamHandler;
-import interfaces.*;
-import interfaces.observer.*;
+import src.main.java.stream.StreamHandler;
+import src.main.java.interfaces.*;
+import src.main.java.interfaces.observer.*;
+import src.main.java.volume.VolumeControl;
+import src.main.java.music.MusicFileLoader;
+
 
 public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private final List<Observer2> observers2 = new ArrayList<>();
@@ -21,7 +28,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private VolumeControl volumeControl;
     private MusicFileLoader musicFileLoader;
     private Mp3ImageExtractor mp3ImageExtractor;
-    private volatile Player player;
+    private Player player;
     private volatile boolean isPlaying = false;
 
     public MediaPlayerModel(String folderMusic, String defaultImg, int volume) throws UnsupportedTagException {
@@ -117,18 +124,21 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
-                }, isPlaying());
+                }, true);
 
                 player.play();
 
-                System.out.println("Playing: " + currentTrack);
+                // System.out.println("Playing: " + currentTrack);
 
             } catch (IOException | JavaLayerException e) {
                 System.err.println("Error during playback: " + e.getMessage());
                 e.printStackTrace();
             } finally {
                 setPlaying(false);
-                notifyObservers(observer -> observer.setLabelTrack("Stopped track: " + currentTrack));
+                if (player != null && player.isComplete()) {
+                    next();
+                }
+
             }
         });
 
@@ -146,7 +156,6 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
             return this.isPlaying;
         }
     }
-
 
     public void stop() {
 
