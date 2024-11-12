@@ -21,8 +21,8 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private VolumeControl volumeControl;
     private MusicFileLoader musicFileLoader;
     private Mp3ImageExtractor mp3ImageExtractor;
-    private Player player;
-    private boolean isPlaying = false;
+    private volatile Player player;
+    private volatile boolean isPlaying = false;
 
     public MediaPlayerModel(String folderMusic, String defaultImg, int volume) throws UnsupportedTagException {
         volumeControl = new VolumeControl(volume, this);
@@ -101,15 +101,19 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                 StreamHandler.startStreamWithWhile(_ -> {
                     try {
                         long totalDuration = musicFileLoader.getCurrentSong().getDurationInSeconds();
-                        Thread.sleep(1000); 
 
                         // Получаем текущую позицию воспроизведения
-                        long currentPosition = player.getPosition();
-                        int progressPercent = (int) (((double) currentPosition / 1000) / totalDuration * 100);
+                        try {
+                            long currentPosition = player.getPosition();
+                            int progressPercent = (int) (((double) currentPosition / 1000) / totalDuration * 100);
+                            notifyObservers(observer -> observer.setProgressBar(progressPercent));
+                        } catch (NullPointerException e) {
+                            notifyObservers(observer -> observer.setProgressBar(0));
+                        }
 
                         // Уведомляем наблюдателей об изменении прогресса
-                        notifyObservers(observer -> observer.setProgressBar(progressPercent));
 
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
@@ -142,6 +146,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
             return this.isPlaying;
         }
     }
+
 
     public void stop() {
 

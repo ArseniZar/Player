@@ -6,7 +6,7 @@ import stream.StreamHandler;
 
 public class VolumeControl {
     private int volume = 0;
-    private volatile boolean  isManualChange = false;
+    private volatile boolean isManualChange = false;
     private MediaPlayerModel mediaPlayerModel;
 
     public VolumeControl(int volume, MediaPlayerModel mediaPlayerModel) {
@@ -17,9 +17,9 @@ public class VolumeControl {
     }
 
     public void setVolume(int newVolume) {
-        isManualChange = true;
+        setIsManualChange(true);
         adjustVolume((float) newVolume);
-        isManualChange = false;
+        setIsManualChange(false);
     }
 
     public void adjustVolume(float volume) {
@@ -61,29 +61,38 @@ public class VolumeControl {
 
     public void startVolumeCheckInBackground() {
         StreamHandler.startStreamWithWhile(_ -> {
-            try {
-                float currentVolume = getCurrentVolume();
-                if (currentVolume != -1) {
-                    if (currentVolume != volume) {
-                        this.volume = (int) currentVolume;
-                        setVolume(volume);
-                        mediaPlayerModel.notifyObservers(observer -> observer.setVolume(volume));
+            if (!getIsManualChange()) {
+                try {
+                    float currentVolume = getCurrentVolume();
+                    if (currentVolume != -1) {
+                        if (currentVolume != volume) {
+                            this.volume = (int) currentVolume;
+                            mediaPlayerModel.notifyObservers(observer -> observer.setVolume(volume));
+                        }
                     }
+                } catch (Exception e) {
+                    System.out.println("Error checking volume: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.out.println("Error checking volume: " + e.getMessage());
-            }
 
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                System.out.println("Volume check thread interrupted: " + e.getMessage());
-                return;
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    System.out.println("Volume check thread interrupted: " + e.getMessage());
+                    return;
+                }
             }
-        }, !isManualChange);
+        }, true);
     }
 
-    public void setManualChange(boolean isManualChange) {
-        this.isManualChange = isManualChange;
+    public void setIsManualChange(boolean isManualChange) {
+        synchronized (this) {
+            this.isManualChange = isManualChange;
+        }
+    }
+
+    public boolean getIsManualChange() {
+        synchronized (this) {
+            return isManualChange;
+        }
     }
 }

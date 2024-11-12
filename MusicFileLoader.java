@@ -24,6 +24,7 @@ public class MusicFileLoader {
 
     public void loadMusicFiles() throws UnsupportedTagException {
         File folder = new File(directoryPath);
+        @SuppressWarnings("unused")
         File[] tempFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".mp3"));
 
         if (tempFiles != null) {
