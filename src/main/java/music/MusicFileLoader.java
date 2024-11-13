@@ -1,4 +1,5 @@
 package src.main.java.music;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -7,6 +8,8 @@ import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
+
+import src.main.java.img.Mp3ImageExtractor;
 
 import java.util.ArrayList;
 
@@ -17,10 +20,10 @@ public class MusicFileLoader {
     private int currentIndex = 0;
 
     // Конструктор класса, принимающий путь к директории
-    public MusicFileLoader(String directoryPath) throws UnsupportedTagException {
+    public MusicFileLoader(String directoryPath, int index) throws UnsupportedTagException {
         this.directoryPath = directoryPath;
         loadMusicFiles();
-        setCurrentSong(0);
+        setCurrentSong(index);
     }
 
     public void loadMusicFiles() throws UnsupportedTagException {
@@ -47,7 +50,7 @@ public class MusicFileLoader {
         Mp3File mp3file = new Mp3File(file);
 
         // Получаем ID3 теги
-        String title = "Unknown Title";
+        String title = "";
         String artist = "Unknown Artist";
         String album = "Unknown Album";
         String genre = "Unknown Genre";
@@ -86,31 +89,55 @@ public class MusicFileLoader {
         }
     }
 
-    public void nextFile() {
+    public void nextSong(Mp3ImageExtractor mp3ImageExtractor) {
         if (songs.isEmpty()) {
             System.out.println("No tracks to play.");
             return;
         }
-        currentIndex = (currentIndex + 1) % songs.size();
-        setCurrentSong(currentIndex);
+
+        int newcurrentIndex = (currentIndex + 1) % songs.size();
+        setCurrentSong(newcurrentIndex);
+        mp3ImageExtractor.updateImg(this, true);
     }
 
-    public void backFile() {
+    public File nextFile() {
+        int currentIndexNew = (currentIndex + 1) % songs.size();
+        if (currentIndexNew >= 0 && currentIndexNew < songs.size()) {
+            return songs.get(currentIndexNew).getFile();
+        } else {
+            return null;
+        }
+
+    }
+
+    public File backFile() {
+        int currentIndexNew = (currentIndex - 1 + songs.size()) % songs.size();
+        if (currentIndexNew >= 0 && currentIndexNew < songs.size()) {
+            return songs.get(currentIndexNew).getFile();
+        } else {
+            return null;
+        }
+
+    }
+
+    public void backSong(Mp3ImageExtractor mp3ImageExtractor) {
         if (songs.isEmpty()) {
             System.out.println("No tracks to play.");
             return;
         }
 
-        currentIndex = (currentIndex - 1 + songs.size()) % songs.size();
-        setCurrentSong(currentIndex);
+        int newcurrentIndex = (currentIndex - 1 + songs.size()) % songs.size();
+        setCurrentSong(newcurrentIndex);
+        mp3ImageExtractor.updateImg(this, false);
     }
 
     public List<Song> getSongs() {
         return songs;
     }
 
-    public String getCurrentTrack() {
-        return currentSong.getFileName();
+    public String getCurrentName() {
+        return currentSong.getTitle() != "" ? currentSong.getTitle() : currentSong.getFileName();
+
     }
 
     public Song getCurrentSong() {

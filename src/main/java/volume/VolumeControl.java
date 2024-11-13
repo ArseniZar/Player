@@ -40,7 +40,7 @@ public class VolumeControl {
         }
     }
 
-    public float getCurrentVolume() {
+    public static float getCurrentVolume() {
         try {
             String command = "amixer get Master";
             @SuppressWarnings("deprecation")

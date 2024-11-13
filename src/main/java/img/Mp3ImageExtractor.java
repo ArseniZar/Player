@@ -1,29 +1,43 @@
 package src.main.java.img;
+
 import com.mpatric.mp3agic.Mp3File;
+
+import src.main.java.music.MusicFileLoader;
+
 import com.mpatric.mp3agic.ID3v2;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import src.main.java.stream.StreamHandler;
+
 import javax.imageio.ImageIO;
 
 public class Mp3ImageExtractor {
     private final BufferedImage defaultImg;
-    private BufferedImage img = null;
+    private Buffer buffer;
 
-    public Mp3ImageExtractor(String filePath) {
+    public Mp3ImageExtractor(String filePath, MusicFileLoader musicFileLoader) {
         this.defaultImg = fileToBufferedImage(filePath);
+
+        BufferedImage beak = getOrDefault(musicFileLoader.backFile());
+        BufferedImage next = getOrDefault(musicFileLoader.nextFile());
+        BufferedImage img = getOrDefault(musicFileLoader.getCurrentSong().getFile());
+
+        this.buffer = new Buffer(beak, img, next);
+
     }
-    
-    public BufferedImage getDefaultImg() {
-        return defaultImg;
+
+    private BufferedImage getOrDefault(File file) {
+        BufferedImage image = checkImgMeta(file);
+        return (image != null) ? image : defaultImg;
     }
 
     public BufferedImage getImg() {
-        return img;
+        return buffer.getImg();
     }
 
-    public BufferedImage fileToBufferedImage(String filePath) {
+    private BufferedImage fileToBufferedImage(String filePath) {
         try {
             File file = new File(filePath);
             BufferedImage img = ImageIO.read(file);
@@ -34,13 +48,29 @@ public class Mp3ImageExtractor {
         }
     }
 
-    public void getImage(File mp3File) {
+    public void updateImg(MusicFileLoader musicFileLoader, boolean status) {
+        if (status) {
+            buffer.updateImgNext();
+            File nextFile = musicFileLoader.nextFile();
+            StreamHandler.startStream(_ -> {
 
-        this.img = checkImgMeta(mp3File);
+                BufferedImage img = checkImgMeta(nextFile);
+                img = (img != null) ? img : defaultImg;
+                buffer.setNextImg(img);
+            });
+        } else {
+            buffer.updateImgBeak();
+            File nextFile = musicFileLoader.backFile();
+            StreamHandler.startStream(_ -> {
+                BufferedImage img = checkImgMeta(nextFile);
+                img = (img != null) ? img : defaultImg;
+                buffer.setBeakImg(img);
+            });
+        }
 
     }
 
-    private BufferedImage checkImgMeta(File mp3File) {
+    private static BufferedImage checkImgMeta(File mp3File) {
         try {
             Mp3File mp3 = new Mp3File(mp3File);
             System.out.println("Файл MP3 загружен: " + mp3File.getName());

@@ -31,7 +31,7 @@ public class Song {
         return title;
     }
 
-    public File getfFile(){
+    public File getFile(){
         return mp3;
     }
 

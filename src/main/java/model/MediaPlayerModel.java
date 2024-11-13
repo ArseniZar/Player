@@ -1,6 +1,4 @@
 package src.main.java.model;
-
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,7 +17,6 @@ import src.main.java.interfaces.observer.*;
 import src.main.java.volume.VolumeControl;
 import src.main.java.music.MusicFileLoader;
 
-
 public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private final List<Observer2> observers2 = new ArrayList<>();
 
@@ -30,12 +27,12 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private Mp3ImageExtractor mp3ImageExtractor;
     private Player player;
     private volatile boolean isPlaying = false;
+    // private int pausedFrame = 0;
 
     public MediaPlayerModel(String folderMusic, String defaultImg, int volume) throws UnsupportedTagException {
         volumeControl = new VolumeControl(volume, this);
-        musicFileLoader = new MusicFileLoader(folderMusic);
-        mp3ImageExtractor = new Mp3ImageExtractor(defaultImg);
-        mp3ImageExtractor.getImage(musicFileLoader.getCurrentSong().getfFile());
+        musicFileLoader = new MusicFileLoader(folderMusic, 0);
+        mp3ImageExtractor = new Mp3ImageExtractor(defaultImg, musicFileLoader);
     }
 
     public void start_Observer(MediaPlayerController mediaPlayerController) {
@@ -49,7 +46,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
 
             @Override
             public void onStop() {
-                stop();
+                pause();
             }
 
             @Override
@@ -71,8 +68,8 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     }
 
     public void play() {
-        File currentFile = musicFileLoader.getCurrentSong().getfFile();
-        String currentTrack = musicFileLoader.getCurrentTrack();
+        File currentFile = musicFileLoader.getCurrentSong().getFile();
+        String currentTrack = musicFileLoader.getCurrentName();
 
         if (isPlaying) {
             System.out.println("Music is already playing.");
@@ -88,21 +85,16 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
             try (FileInputStream fileInputStream = new FileInputStream(currentFile)) {
                 player = new Player(fileInputStream);
                 setPlaying(true);
+                // pausedFrame = 0;
                 StreamHandler.startStream(_ -> {
-                    BufferedImage img = mp3ImageExtractor.getImg();
-                    if (img != null) {
-                        notifyObservers(observer -> observer.setImg(img));
-                    } else {
-                        notifyObservers(observer -> observer.setImg(mp3ImageExtractor.getDefaultImg()));
-                    }
-                });
+                    notifyObservers(observer -> observer.setImg(mp3ImageExtractor.getImg()));
 
-                StreamHandler.startStream(_ -> {
-                    notifyObservers(observer -> observer.setLabelTrack("Playing track: " + currentTrack));
-                });
-
-                StreamHandler.startStream(_ -> {
-                    notifyObservers(observer -> observer.setLabelButton("Stoping"));
+                    StreamHandler.startStream(_ -> {
+                        notifyObservers(observer -> observer.setLabelTrack(currentTrack));
+                    });
+                    StreamHandler.startStream(_ -> {
+                        notifyObservers(observer -> observer.setLabelButton("Stop"));
+                    });
                 });
 
                 StreamHandler.startStreamWithWhile(_ -> {
@@ -157,36 +149,50 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
         }
     }
 
-    public void stop() {
+    private void stop() {
 
         if (player != null) {
             player.close();
             player = null;
             setPlaying(false);
-            StreamHandler.startStream(_ -> {
-                notifyObservers(
-                        observer -> observer.setLabelTrack("Stopped track: " + musicFileLoader.getCurrentTrack()));
-            });
-            StreamHandler.startStream(_ -> {
-                notifyObservers(observer -> observer.setLabelButton("Playing"));
-            });
+            // StreamHandler.startStream(_ -> {
+            // notifyObservers(
+            // observer -> observer.setLabelTrack(musicFileLoader.getCurrentTrack()));
+            // });
+            // StreamHandler.startStream(_ -> {
+            // notifyObservers(observer -> observer.setLabelButton("Play"));
+            // });
 
         } else {
             System.out.println("No music is playing.");
         }
     }
 
+    public void pause() {
+
+        if (player != null && isPlaying) {
+            // pausedFrame = player.getPosition(); // Сохраняем текущую позицию
+            player.close();
+            setPlaying(false);
+            StreamHandler.startStream(_ -> {
+                notifyObservers(observer -> observer.setLabelButton("Play"));
+            });
+        } else {
+            System.out.println("No music is playing.");
+        }
+
+    }
+
     public void next() {
         stop();
-        musicFileLoader.nextFile();
-        mp3ImageExtractor.getImage(musicFileLoader.getCurrentSong().getfFile());
+        musicFileLoader.nextSong(mp3ImageExtractor);
         play();
     }
 
     public void back() {
         stop();
-        musicFileLoader.backFile();
-        mp3ImageExtractor.getImage(musicFileLoader.getCurrentSong().getfFile());
+        musicFileLoader.backSong(mp3ImageExtractor);
+
         play();
     }
 

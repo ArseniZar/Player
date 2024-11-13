@@ -2,7 +2,6 @@ package src.main.java.gui;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
-
 import src.main.java.stream.StreamHandler;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -83,7 +82,7 @@ public class MediaPlayerView extends JFrame {
     private JPanel createTitlePanel() {
         JPanel titlePanel = new JPanel();
         titlePanel.setBackground(Color.DARK_GRAY);
-        JLabel titleLabel = new JLabel("My Media Player");
+        JLabel titleLabel = new JLabel("Media Player");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
         titlePanel.add(titleLabel);
@@ -148,7 +147,7 @@ public class MediaPlayerView extends JFrame {
     }
 
     private JPanel createMainPanel(JPanel titlePanel, JPanel controlPanel, JPanel imagePanel, JPanel trackPanel,
-            JPanel volumePanel, JPanel progressBarPanel) {
+        JPanel volumePanel, JPanel progressBarPanel) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.DARK_GRAY);
         GridBagConstraints gbc = new GridBagConstraints();
