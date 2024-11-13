@@ -1,4 +1,5 @@
 package src.main.java.model;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -6,16 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mpatric.mp3agic.UnsupportedTagException;
-
 import src.main.java.control.MediaPlayerController;
-import src.main.java.img.Mp3ImageExtractor;
+import src.main.java.files.MusicFileLoader;
+import src.main.java.img.ImageExtractor;
+import src.main.java.img.ImageResources;
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
 import src.main.java.stream.StreamHandler;
 import src.main.java.interfaces.*;
 import src.main.java.interfaces.observer.*;
 import src.main.java.volume.VolumeControl;
-import src.main.java.music.MusicFileLoader;
 
 public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private final List<Observer2> observers2 = new ArrayList<>();
@@ -24,15 +25,17 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private MediaPlayerController mediaPlayerController;
     private VolumeControl volumeControl;
     private MusicFileLoader musicFileLoader;
-    private Mp3ImageExtractor mp3ImageExtractor;
+    private ImageExtractor mp3ImageExtractor;
     private Player player;
     private volatile boolean isPlaying = false;
+    private volatile boolean round = false;
+    private volatile boolean random = false;
     // private int pausedFrame = 0;
 
-    public MediaPlayerModel(String folderMusic, String defaultImg, int volume) throws UnsupportedTagException {
+    public MediaPlayerModel(String folderMusic, int volume) throws UnsupportedTagException {
         volumeControl = new VolumeControl(volume, this);
         musicFileLoader = new MusicFileLoader(folderMusic, 0);
-        mp3ImageExtractor = new Mp3ImageExtractor(defaultImg, musicFileLoader);
+        mp3ImageExtractor = new ImageExtractor(musicFileLoader);
     }
 
     public void start_Observer(MediaPlayerController mediaPlayerController) {
@@ -64,6 +67,36 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                 back();
             }
 
+            @Override
+            public void roundMode() {
+                roundModes();
+            }
+
+            @Override
+            public void randomMode() {
+                randomModes();
+            }
+
+        });
+    }
+
+    public void roundModes() {
+
+        round = !round;
+        StreamHandler.startStream(_ -> {
+            notifyObservers(
+                    observer -> observer
+                            .setImgButtonRound(round ? ImageResources.roundImgOn : ImageResources.roundImgOff));
+        });
+    }
+
+    public void randomModes() {
+
+        random = !random;
+        StreamHandler.startStream(_ -> {
+            notifyObservers(
+                    observer -> observer
+                            .setImgButtonRandom(random ? ImageResources.randomImgOn : ImageResources.randomImgOff));
         });
     }
 
@@ -85,7 +118,6 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
             try (FileInputStream fileInputStream = new FileInputStream(currentFile)) {
                 player = new Player(fileInputStream);
                 setPlaying(true);
-                // pausedFrame = 0;
                 StreamHandler.startStream(_ -> {
                     notifyObservers(observer -> observer.setImg(mp3ImageExtractor.getImg()));
 
@@ -93,7 +125,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                         notifyObservers(observer -> observer.setLabelTrack(currentTrack));
                     });
                     StreamHandler.startStream(_ -> {
-                        notifyObservers(observer -> observer.setLabelButton("Stop"));
+                        notifyObservers(observer -> observer.setImgButtonStartStop(ImageResources.stopImg));
                     });
                 });
 
@@ -101,7 +133,6 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                     try {
                         long totalDuration = musicFileLoader.getCurrentSong().getDurationInSeconds();
 
-                        // Получаем текущую позицию воспроизведения
                         try {
                             long currentPosition = player.getPosition();
                             int progressPercent = (int) (((double) currentPosition / 1000) / totalDuration * 100);
@@ -109,8 +140,6 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                         } catch (NullPointerException e) {
                             notifyObservers(observer -> observer.setProgressBar(0));
                         }
-
-                        // Уведомляем наблюдателей об изменении прогресса
 
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
@@ -120,14 +149,12 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
 
                 player.play();
 
-                // System.out.println("Playing: " + currentTrack);
-
             } catch (IOException | JavaLayerException e) {
                 System.err.println("Error during playback: " + e.getMessage());
                 e.printStackTrace();
             } finally {
                 setPlaying(false);
-                if (player != null && player.isComplete()) {
+                if (round && player != null && player.isComplete()) {
                     next();
                 }
 
@@ -142,7 +169,6 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
         }
     }
 
-    // Метод для получения значения флага isPlaying
     public boolean isPlaying() {
         synchronized (this) {
             return this.isPlaying;
@@ -155,14 +181,6 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
             player.close();
             player = null;
             setPlaying(false);
-            // StreamHandler.startStream(_ -> {
-            // notifyObservers(
-            // observer -> observer.setLabelTrack(musicFileLoader.getCurrentTrack()));
-            // });
-            // StreamHandler.startStream(_ -> {
-            // notifyObservers(observer -> observer.setLabelButton("Play"));
-            // });
-
         } else {
             System.out.println("No music is playing.");
         }
@@ -171,11 +189,10 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     public void pause() {
 
         if (player != null && isPlaying) {
-            // pausedFrame = player.getPosition(); // Сохраняем текущую позицию
             player.close();
             setPlaying(false);
             StreamHandler.startStream(_ -> {
-                notifyObservers(observer -> observer.setLabelButton("Play"));
+                notifyObservers(observer -> observer.setImgButtonStartStop(ImageResources.playImg));
             });
         } else {
             System.out.println("No music is playing.");

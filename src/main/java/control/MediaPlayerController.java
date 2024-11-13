@@ -1,10 +1,11 @@
 package src.main.java.control;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+
+import java.awt.event.MouseEvent;
 
 import src.main.java.gui.MediaPlayerView;
 import src.main.java.interfaces.*;
@@ -18,26 +19,28 @@ public class MediaPlayerController implements Subject<Observer1, Action<Observer
 
     public MediaPlayerController(MediaPlayerView view) {
         this.view = view;
-        view.addPlayStopListener(new ActionListener() {
+        view.addPlayStopClickListener(new MouseAdapter() {
+
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void mouseClicked(MouseEvent e) {
                 Action<Observer1> action = mediaPlayerModel.isPlaying()
                         ? observer -> observer.onStop()
                         : observer -> observer.onPlay();
                 notifyObservers(action);
             }
         });
-        view.addNextListener(new ActionListener() {
+        view.addBackClickListener(new MouseAdapter() {
+
             @Override
-            public void actionPerformed(ActionEvent e) {
-                notifyObservers(observer -> observer.onNext());
+            public void mouseClicked(MouseEvent e) {
+                notifyObservers(observer -> observer.onBack());
             }
         });
 
-        view.addBackListener(new ActionListener() {
+        view.addNextClickListener(new MouseAdapter() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                notifyObservers(observer -> observer.onBack());
+            public void mouseClicked(MouseEvent e) {
+                notifyObservers(observer -> observer.onNext());
             }
         });
 
@@ -46,6 +49,23 @@ public class MediaPlayerController implements Subject<Observer1, Action<Observer
             notifyObservers(observer -> observer.setVolume(level));
 
         });
+
+        view.addRoundClickListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Вызов метода notifyObservers с нужным действием
+                notifyObservers(observer -> observer.roundMode()); // Замените `someMethod` на нужный метод
+            }
+        });
+
+        view.addRandomClickListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // Вызов метода notifyObservers с нужным действием
+                notifyObservers(observer -> observer.randomMode()); // Замените `someMethod` на нужный метод
+            }
+        });
+
     }
 
     public void start_Observer(MediaPlayerModel mediaPlayerModel) {
@@ -64,11 +84,6 @@ public class MediaPlayerController implements Subject<Observer1, Action<Observer
             }
 
             @Override
-            public void setLabelButton(String label) {
-                view.setPlayStopButtonText(label);
-            }
-
-            @Override
             public void setVolume(int level) {
                 view.setVolume(level);
             }
@@ -76,6 +91,24 @@ public class MediaPlayerController implements Subject<Observer1, Action<Observer
             @Override
             public void setImg(BufferedImage img) {
                 view.setImage(img);
+            }
+
+            @Override
+            public void setImgButtonStartStop(BufferedImage img) {
+                view.setPlayStopIcon(img);
+
+            }
+
+            @Override
+            public void setImgButtonRound(BufferedImage img) {
+                view.setRoundIcon(img);
+
+            }
+
+            @Override
+            public void setImgButtonRandom(BufferedImage img) {
+                view.setRandomStopIcon(img);
+
             }
 
         });

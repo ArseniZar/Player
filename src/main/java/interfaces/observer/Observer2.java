@@ -7,10 +7,15 @@ public interface Observer2 {
 
     void setLabelTrack(String label);
 
-    void setLabelButton(String label);
+    void setImgButtonStartStop(BufferedImage img);
+    
+    void setImgButtonRound(BufferedImage img);
+
+    void setImgButtonRandom(BufferedImage img);
 
     void setVolume(int level);
 
     void setImg(BufferedImage img);
+
 
 }

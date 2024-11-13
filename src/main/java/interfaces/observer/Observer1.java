@@ -10,6 +10,10 @@ public interface Observer1 {
     void onNext();
 
     void onBack();
+
+    void roundMode();
+
+    void randomMode();
     
     
 }

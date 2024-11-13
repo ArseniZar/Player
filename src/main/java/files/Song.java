@@ -1,4 +1,4 @@
-package src.main.java.music;
+package src.main.java.files;
 import java.io.File;
 import java.io.IOException;
 import com.mpatric.mp3agic.InvalidDataException;
@@ -14,7 +14,7 @@ public class Song {
     private String fileName;
     private  File mp3;
 
-    // Конструктор
+    
     public Song(String title, String artist, String album, String genre, int year, long durationInSeconds, String fileName, File mp3File) throws UnsupportedTagException, InvalidDataException, IOException {
         this.mp3 = mp3File;
         this.title = title;

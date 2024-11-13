@@ -1,5 +1,4 @@
-package src.main.java.music;
-
+package src.main.java.files;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -9,8 +8,7 @@ import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.UnsupportedTagException;
 
-import src.main.java.img.Mp3ImageExtractor;
-
+import src.main.java.img.ImageExtractor;
 import java.util.ArrayList;
 
 public class MusicFileLoader {
@@ -75,11 +73,13 @@ public class MusicFileLoader {
         return new Song(title, artist, album, genre, year, durationInSeconds, file.getName(), file);
     }
 
+
     public void setDirectoryPath(String directoryPath) throws UnsupportedTagException {
         this.directoryPath = directoryPath;
         loadMusicFiles();
     }
 
+    
     public void setCurrentSong(int index) {
         if (index >= 0 && index < songs.size()) {
             currentSong = songs.get(index);
@@ -89,7 +89,7 @@ public class MusicFileLoader {
         }
     }
 
-    public void nextSong(Mp3ImageExtractor mp3ImageExtractor) {
+    public void nextSong(ImageExtractor mp3ImageExtractor) {
         if (songs.isEmpty()) {
             System.out.println("No tracks to play.");
             return;
@@ -120,7 +120,7 @@ public class MusicFileLoader {
 
     }
 
-    public void backSong(Mp3ImageExtractor mp3ImageExtractor) {
+    public void backSong(ImageExtractor mp3ImageExtractor) {
         if (songs.isEmpty()) {
             System.out.println("No tracks to play.");
             return;
@@ -130,6 +130,8 @@ public class MusicFileLoader {
         setCurrentSong(newcurrentIndex);
         mp3ImageExtractor.updateImg(this, false);
     }
+
+
 
     public List<Song> getSongs() {
         return songs;

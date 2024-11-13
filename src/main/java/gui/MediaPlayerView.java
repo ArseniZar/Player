@@ -2,18 +2,26 @@ package src.main.java.gui;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
+
+import src.main.java.img.ImageResources;
 import src.main.java.stream.StreamHandler;
 import java.awt.*;
-import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 public class MediaPlayerView extends JFrame {
-    
-    private JButton playStopButton;
-    private JButton backButton;
-    private JButton nextButton;
+
+    private JLabel playStopButton;
+    private JLabel nextButton;
+    private JLabel beakButton;
+    private JLabel roundButton;
+    private JLabel randomButton;
+
+    private ImageIcon playStopIcon;
+    private ImageIcon roundIcon;
+    private ImageIcon randomIcon;
 
     private JLabel trackLabel;
     private JLabel imageLabel;
@@ -21,18 +29,43 @@ public class MediaPlayerView extends JFrame {
     private JProgressBar progressBar;
     private ImageIcon imageIcon;
 
-    public MediaPlayerView(int level, String defaultImg) {
-        // Настройки окна
-        this.imageIcon = new ImageIcon(defaultImg);
-        this.imageIcon.setImage(imageIcon.getImage().getScaledInstance(300, 300, Image.SCALE_SMOOTH));
+    public MediaPlayerView(int level) {
+        imageIcon = new ImageIcon();
+        playStopIcon = new ImageIcon();
+        roundIcon = new ImageIcon();
+        randomIcon = new ImageIcon();
+        initialization(imageIcon, ImageResources.defaultImg, 300, 300);
+        initialization(playStopIcon, ImageResources.playImg, 50, 50);
+        initialization(roundIcon, ImageResources.roundImgOff, 25, 25);
+        initialization(randomIcon, ImageResources.randomImgOff, 25, 25);
+
+        // this.imageIcon.setImage(imageIcon.getImage().getScaledInstance(300, 300,
+
+        // Image.SCALE_SMOOTH));
+
+        // this.playStopIcon = new ImageIcon(System.getProperty("user.dir") +
+        // "/src/main/resources/img/play.png");
+        // this.playStopIcon.setImage(playStopIcon.getImage().getScaledInstance(50, 50,
+        // Image.SCALE_SMOOTH));
+
+        // this.roundIcon = new ImageIcon(System.getProperty("user.dir") +
+        // "/src/main/resources/img/round.png");
+        // this.roundIcon.setImage(roundIcon.getImage().getScaledInstance(25, 25,
+        // Image.SCALE_SMOOTH));
+
+        // this.randomIcon = new ImageIcon(System.getProperty("user.dir") +
+        // "/src/main/resources/img/random.png");
+        // this.randomIcon.setImage(randomIcon.getImage().getScaledInstance(25, 25,
+        // Image.SCALE_SMOOTH));
+
         getContentPane().setBackground(Color.DARK_GRAY);
         setTitle("Media Player");
-        setSize(500, 700);
+        setSize(500, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
         JPanel titlePanel = createTitlePanel();
-        JPanel controlPanel = createControlPanel();
+        JPanel controlPanel = createControlPanelImg();
         JPanel imagePanel = createImagePanel();
         JPanel trackPanel = createTrackPanel();
         JPanel volumePanel = createVolumeSlider();
@@ -56,6 +89,10 @@ public class MediaPlayerView extends JFrame {
         setVisible(true);
     }
 
+    private void initialization(ImageIcon imageIcons, BufferedImage img, int wh, int ht) {
+        imageIcons.setImage(img.getScaledInstance(wh, ht, Image.SCALE_SMOOTH));
+    }
+
     private JPanel createVolumeSlider() {
         JPanel volumePanel = new JPanel(new BorderLayout());
         volumeSlider = new JSlider(0, 100, 50);
@@ -72,52 +109,54 @@ public class MediaPlayerView extends JFrame {
         progressPanel.setBackground(Color.DARK_GRAY);
 
         progressBar = new JProgressBar(0, 100);
-        progressBar.setPreferredSize(new Dimension(150, 6));
+        // progressBar.setPreferredSize(new Dimension(150, 6));
         progressBar.setBackground(Color.DARK_GRAY);
         progressBar.setForeground(Color.WHITE);
+        progressBar.setPreferredSize(new Dimension(3, 6));
         progressPanel.add(progressBar, BorderLayout.CENTER);
         return progressPanel;
     }
 
     private JPanel createTitlePanel() {
         JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
         titlePanel.setBackground(Color.DARK_GRAY);
         JLabel titleLabel = new JLabel("Media Player");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
+
+        ImageIcon logo;
+        logo = new ImageIcon(ImageResources.logo.getScaledInstance(30, 30, Image.SCALE_SMOOTH));
+        JLabel jLogo = new JLabel(logo);
+        titlePanel.add(jLogo);
         titlePanel.add(titleLabel);
         titlePanel.setPreferredSize(new Dimension(300, 50));
         return titlePanel;
     }
 
-    private JPanel createControlPanel() {
+    private JPanel createControlPanelImg() {
         JPanel controlPanel = new JPanel();
-        controlPanel.setLayout(new FlowLayout());
+        controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 35, 0));
         controlPanel.setBackground(Color.DARK_GRAY);
 
-        playStopButton = new JButton("Play");
-        backButton = new JButton("Back");
-        nextButton = new JButton("Next");
+        ImageIcon icon;
+        icon = new ImageIcon(ImageResources.next.getScaledInstance(25, 25, Image.SCALE_SMOOTH));
+        nextButton = new JLabel(icon);
 
-        controlPanel.add(backButton);
+        icon = new ImageIcon(ImageResources.back.getScaledInstance(25, 25, Image.SCALE_SMOOTH));
+        beakButton = new JLabel(icon);
+
+        playStopButton = new JLabel(playStopIcon);
+        roundButton = new JLabel(roundIcon);
+        randomButton = new JLabel(randomIcon);
+
+        controlPanel.add(randomButton);
+        controlPanel.add(beakButton);
         controlPanel.add(playStopButton);
         controlPanel.add(nextButton);
-
-        playStopButton.setPreferredSize(new Dimension(100, 40));
-        backButton.setPreferredSize(new Dimension(100, 40));
-        nextButton.setPreferredSize(new Dimension(100, 40));
+        controlPanel.add(roundButton);
 
         return controlPanel;
-    }
-
-    private Image createImageIconFromBufferedImage(BufferedImage bufferedImage) {
-        if (bufferedImage != null) {
-            Image image = bufferedImage;
-            return image;
-        } else {
-            System.err.println("BufferedImage is null.");
-            return null;
-        }
     }
 
     private JPanel createImagePanel() {
@@ -147,12 +186,12 @@ public class MediaPlayerView extends JFrame {
     }
 
     private JPanel createMainPanel(JPanel titlePanel, JPanel controlPanel, JPanel imagePanel, JPanel trackPanel,
-        JPanel volumePanel, JPanel progressBarPanel) {
+            JPanel volumePanel, JPanel progressBarPanel) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBackground(Color.DARK_GRAY);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 25, 10, 25);
+        gbc.insets = new Insets(15, 25, 10, 25);
 
         // gbc.gridwidth = 2;
         gbc.gridy = 0;
@@ -167,10 +206,10 @@ public class MediaPlayerView extends JFrame {
 
         gbc.gridy = 3;
         panel.add(volumePanel, gbc);
-
+        gbc.insets = new Insets(10, 32, 15, 32);
         gbc.gridy = 4;
         panel.add(progressBarPanel, gbc);
-
+        gbc.insets = new Insets(15, 25, 20, 25);
         gbc.gridy = 5;
         panel.add(controlPanel, gbc);
 
@@ -186,9 +225,27 @@ public class MediaPlayerView extends JFrame {
     }
 
     public void setImage(BufferedImage img) {
-        imageIcon.setImage(createImageIconFromBufferedImage(img).getScaledInstance(300, 300, Image.SCALE_SMOOTH));
+        imageIcon.setImage(img.getScaledInstance(300, 300, Image.SCALE_SMOOTH));
         imageLabel.revalidate();
         imageLabel.repaint();
+    }
+
+    public void setPlayStopIcon(BufferedImage img) {
+        playStopIcon.setImage(img.getScaledInstance(50, 50, Image.SCALE_SMOOTH));
+        playStopButton.revalidate();
+        playStopButton.repaint();
+    }
+
+    public void setRoundIcon(BufferedImage img) {
+        roundIcon.setImage(img.getScaledInstance(25, 25, Image.SCALE_SMOOTH));
+        roundButton.revalidate();
+        roundButton.repaint();
+    }
+
+    public void setRandomStopIcon(BufferedImage img) {
+        randomIcon.setImage(img.getScaledInstance(25, 25, Image.SCALE_SMOOTH));
+        randomButton.revalidate();
+        randomButton.repaint();
     }
 
     public void setVolume(int level) {
@@ -207,19 +264,24 @@ public class MediaPlayerView extends JFrame {
         volumeSlider.addChangeListener(listener);
     }
 
-    public void addPlayStopListener(ActionListener listenForPlayStopButton) {
-        playStopButton.addActionListener(listenForPlayStopButton);
+    public void addPlayStopClickListener(MouseListener listenForPlayStopClick) {
+        playStopButton.addMouseListener(listenForPlayStopClick);
     }
 
-    public void addBackListener(ActionListener listenForBackButton) {
-        backButton.addActionListener(listenForBackButton);
+    public void addBackClickListener(MouseListener listenForBackClick) {
+        beakButton.addMouseListener(listenForBackClick);
     }
 
-    public void addNextListener(ActionListener listenForNextButton) {
-        nextButton.addActionListener(listenForNextButton);
+    public void addNextClickListener(MouseListener listenForNextClick) {
+        nextButton.addMouseListener(listenForNextClick);
     }
 
-    public void setPlayStopButtonText(String text) {
-        playStopButton.setText(text);
+    public void addRoundClickListener(MouseListener listenForRoundClick) {
+        roundButton.addMouseListener(listenForRoundClick);
     }
+
+    public void addRandomClickListener(MouseListener listenForRandomClick) {
+        randomButton.addMouseListener(listenForRandomClick);
+    }
+
 }
