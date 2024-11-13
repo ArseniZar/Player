@@ -15,8 +15,8 @@ public final class ImageResources {
      public static final BufferedImage roundImgOn =fileToBufferedImage(System.getProperty("user.dir") + "/src/main/resources/img/roundOn.png");
      public static final BufferedImage randomImgOff = fileToBufferedImage(System.getProperty("user.dir") + "/src/main/resources/img/randomOff.png");
      public static final BufferedImage randomImgOn =fileToBufferedImage(System.getProperty("user.dir") + "/src/main/resources/img/randomOn.png");
-     public static final BufferedImage next =fileToBufferedImage(System.getProperty("user.dir") + "/src/main/resources/img/next.png");
-     public static final BufferedImage back =fileToBufferedImage(System.getProperty("user.dir") + "/src/main/resources/img/back.png");
+     public  static BufferedImage next =fileToBufferedImage(System.getProperty("user.dir") + "/src/main/resources/img/next.png");
+     public   static BufferedImage back =fileToBufferedImage(System.getProperty("user.dir") + "/src/main/resources/img/back.png");
      
 
     private static  BufferedImage fileToBufferedImage(String filePath) {
