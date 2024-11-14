@@ -7,6 +7,8 @@ public interface Observer2 {
 
     void setLabelTrack(String label);
 
+    void setLabelAdditional(String label);
+
     void setImgButtonStartStop(BufferedImage img);
     
     void setImgButtonRound(BufferedImage img);

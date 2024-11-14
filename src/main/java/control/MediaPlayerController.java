@@ -111,6 +111,11 @@ public class MediaPlayerController implements Subject<Observer1, Action<Observer
 
             }
 
+            @Override
+            public void setLabelAdditional(String label) {
+                view.setAdditionalLabel(label);
+            }
+
         });
 
     }

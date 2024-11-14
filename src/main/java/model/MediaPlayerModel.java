@@ -93,6 +93,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     public void randomModes() {
 
         random = !random;
+        musicFileLoader.setRandomMode(random);
         StreamHandler.startStream(_ -> {
             notifyObservers(
                     observer -> observer
@@ -103,6 +104,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     public void play() {
         File currentFile = musicFileLoader.getCurrentSong().getFile();
         String currentTrack = musicFileLoader.getCurrentName();
+        String artist = musicFileLoader.getCurrentSong().getArtist();
 
         if (isPlaying) {
             System.out.println("Music is already playing.");
@@ -123,6 +125,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
 
                     StreamHandler.startStream(_ -> {
                         notifyObservers(observer -> observer.setLabelTrack(currentTrack));
+                        notifyObservers(observer -> observer.setLabelAdditional(artist));
                     });
                     StreamHandler.startStream(_ -> {
                         notifyObservers(observer -> observer.setImgButtonStartStop(ImageResources.stopImg));
@@ -154,8 +157,11 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                 e.printStackTrace();
             } finally {
                 setPlaying(false);
-                if (round && player != null && player.isComplete()) {
-                    next();
+                if (player != null && player.isComplete()) {
+                    notifyObservers(observer -> observer.setImgButtonStartStop(ImageResources.playImg));
+                    if (round) {
+                        next();
+                    }
                 }
 
             }

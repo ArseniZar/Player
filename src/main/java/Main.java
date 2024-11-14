@@ -9,8 +9,8 @@ import src.main.java.control.MediaPlayerController;
 
 public class Main {
     public static final int LEVEL = (int) VolumeControl.getCurrentVolume();
-    public static final String FOLDER_MUSIC = System.getProperty("user.dir") + "/src/main/resources/music";
-  
+    // public static final String FOLDER_MUSIC = System.getProperty("user.dir") + "/src/main/resources/music";
+    public static final String FOLDER_MUSIC = "/home/ars/Music";
     public static void main(String[] args) throws BaseException {
 
         System.out.println(FOLDER_MUSIC);
@@ -22,5 +22,7 @@ public class Main {
 
     }
 }
+
+
 
 

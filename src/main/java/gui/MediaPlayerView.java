@@ -24,10 +24,12 @@ public class MediaPlayerView extends JFrame {
     private ImageIcon randomIcon;
 
     private JLabel trackLabel;
+    private JLabel additionalLabel;
     private JLabel imageLabel;
     private JSlider volumeSlider;
     private JProgressBar progressBar;
     private ImageIcon imageIcon;
+    private final Color Background = Color.DARK_GRAY; 
 
     public MediaPlayerView(int level) {
         imageIcon = new ImageIcon();
@@ -58,7 +60,7 @@ public class MediaPlayerView extends JFrame {
         // this.randomIcon.setImage(randomIcon.getImage().getScaledInstance(25, 25,
         // Image.SCALE_SMOOTH));
 
-        getContentPane().setBackground(Color.DARK_GRAY);
+        getContentPane().setBackground(Background);
         setTitle("Media Player");
         setSize(500, 720);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -98,7 +100,8 @@ public class MediaPlayerView extends JFrame {
         volumeSlider = new JSlider(0, 100, 50);
         volumeSlider.setMajorTickSpacing(10);
         volumeSlider.setMinorTickSpacing(5);
-        volumeSlider.setBackground(Color.DARK_GRAY);
+        volumeSlider.setBackground(Background);
+        volumeSlider.setForeground(Color.WHITE);
         volumeSlider.setPreferredSize(new Dimension(200, 50));
         volumePanel.add(volumeSlider);
         return volumePanel;
@@ -106,11 +109,11 @@ public class MediaPlayerView extends JFrame {
 
     private JPanel createProgressBar() {
         JPanel progressPanel = new JPanel(new BorderLayout());
-        progressPanel.setBackground(Color.DARK_GRAY);
+        progressPanel.setBackground(Background);
 
         progressBar = new JProgressBar(0, 100);
         // progressBar.setPreferredSize(new Dimension(150, 6));
-        progressBar.setBackground(Color.DARK_GRAY);
+        progressBar.setBackground(Background);
         progressBar.setForeground(Color.WHITE);
         progressBar.setPreferredSize(new Dimension(3, 6));
         progressPanel.add(progressBar, BorderLayout.CENTER);
@@ -120,7 +123,7 @@ public class MediaPlayerView extends JFrame {
     private JPanel createTitlePanel() {
         JPanel titlePanel = new JPanel();
         titlePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        titlePanel.setBackground(Color.DARK_GRAY);
+        titlePanel.setBackground(Background);
         JLabel titleLabel = new JLabel("Media Player");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
@@ -137,7 +140,7 @@ public class MediaPlayerView extends JFrame {
     private JPanel createControlPanelImg() {
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 35, 0));
-        controlPanel.setBackground(Color.DARK_GRAY);
+        controlPanel.setBackground(Background);
 
         ImageIcon icon;
         icon = new ImageIcon(ImageResources.next.getScaledInstance(25, 25, Image.SCALE_SMOOTH));
@@ -162,7 +165,7 @@ public class MediaPlayerView extends JFrame {
     private JPanel createImagePanel() {
         JPanel imagePanel = new JPanel();
         imagePanel.setPreferredSize(new Dimension(300, 300));
-        imagePanel.setBackground(Color.DARK_GRAY);
+        imagePanel.setBackground(Background);
         imagePanel.setLayout(new BorderLayout());
         // Image image = imageIcon.getImage();
         // imageIcon = new ImageIcon(image);
@@ -172,43 +175,56 @@ public class MediaPlayerView extends JFrame {
     }
 
     private JPanel createTrackPanel() {
-        JPanel createTrackPanel = new JPanel(new BorderLayout());
-        createTrackPanel.setPreferredSize(new Dimension(300, 50));
-        createTrackPanel.setBackground(Color.DARK_GRAY);
-        trackLabel = new JLabel("Current Track: None");
-        trackLabel.setFont(new Font("Arial", Font.PLAIN, 18));
-        trackLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        trackLabel.setForeground(Color.WHITE);
-        trackLabel.setVerticalAlignment(SwingConstants.TOP);
-        trackLabel.setPreferredSize(new Dimension(300, 50));
-        createTrackPanel.add(trackLabel, BorderLayout.NORTH);
-        return createTrackPanel;
-    }
+    JPanel createTrackPanel = new JPanel();
+    createTrackPanel.setLayout(new BoxLayout(createTrackPanel, BoxLayout.Y_AXIS));
+    createTrackPanel.setPreferredSize(new Dimension(300, 50));
+    createTrackPanel.setBackground(Background);
+
+    // Основной текст
+    trackLabel = new JLabel("Current Track: None");
+    trackLabel.setFont(new Font("Arial", Font.BOLD, 20));
+    trackLabel.setForeground(Color.WHITE);
+    trackLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    // Дополнительный текст
+    additionalLabel = new JLabel("No data available");
+    additionalLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+    additionalLabel.setForeground(Color.LIGHT_GRAY);
+    additionalLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+    // Добавляем метки в панель
+    createTrackPanel.add(trackLabel);
+    createTrackPanel.add(additionalLabel);
+
+    return createTrackPanel;
+}
+
 
     private JPanel createMainPanel(JPanel titlePanel, JPanel controlPanel, JPanel imagePanel, JPanel trackPanel,
             JPanel volumePanel, JPanel progressBarPanel) {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(Color.DARK_GRAY);
+        panel.setBackground(Background);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(15, 25, 10, 25);
-
-        // gbc.gridwidth = 2;
+        gbc.insets = new Insets(15, 52, 10, 52);
         gbc.gridy = 0;
         panel.add(titlePanel, gbc);
 
-        // gbc.gridwidth = 1;
         gbc.gridy = 1;
         panel.add(imagePanel, gbc);
 
+        gbc.insets = new Insets(10, 60, 10, 60);
         gbc.gridy = 2;
         panel.add(trackPanel, gbc);
 
+        gbc.insets = new Insets(10, 52, 15, 52);
         gbc.gridy = 3;
         panel.add(volumePanel, gbc);
-        gbc.insets = new Insets(10, 32, 15, 32);
+
+        gbc.insets = new Insets(10, 60, 15, 60);
         gbc.gridy = 4;
         panel.add(progressBarPanel, gbc);
+
         gbc.insets = new Insets(15, 25, 20, 25);
         gbc.gridy = 5;
         panel.add(controlPanel, gbc);
@@ -218,6 +234,10 @@ public class MediaPlayerView extends JFrame {
 
     public void setTrackLabel(String text) {
         trackLabel.setText(text);
+    }
+
+    public void setAdditionalLabel(String text) {
+        additionalLabel.setText(text);
     }
 
     public int getVolume() {

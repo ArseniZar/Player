@@ -1,7 +1,10 @@
 package src.main.java.files;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import src.main.java.stream.StreamHandler;
+import java.util.stream.Stream;
 
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.InvalidDataException;
@@ -15,13 +18,19 @@ public class MusicFileLoader {
     private List<Song> songs = new ArrayList<>();
     private String directoryPath;
     private Song currentSong = null;
-    private int currentIndex = 0;
+    private int currentIndex;
+    private int nextIndex;
+    private int backIndex;
+    private boolean randomMode = false;
 
     // Конструктор класса, принимающий путь к директории
     public MusicFileLoader(String directoryPath, int index) throws UnsupportedTagException {
         this.directoryPath = directoryPath;
+        this.currentIndex = index;
         loadMusicFiles();
-        setCurrentSong(index);
+        this.backIndex = (currentIndex - 1 + songs.size()) % songs.size();
+        this.nextIndex = (currentIndex + 1) % songs.size();
+        setCurrentSong();
     }
 
     public void loadMusicFiles() throws UnsupportedTagException {
@@ -42,6 +51,10 @@ public class MusicFileLoader {
                 }
             }
         }
+    }
+
+    public void setRandomMode(boolean randomMode) {
+        this.randomMode = randomMode;
     }
 
     private Song extractSongMetadata(File file) throws InvalidDataException, IOException, UnsupportedTagException {
@@ -73,17 +86,53 @@ public class MusicFileLoader {
         return new Song(title, artist, album, genre, year, durationInSeconds, file.getName(), file);
     }
 
-
     public void setDirectoryPath(String directoryPath) throws UnsupportedTagException {
         this.directoryPath = directoryPath;
         loadMusicFiles();
     }
 
-    
-    public void setCurrentSong(int index) {
-        if (index >= 0 && index < songs.size()) {
-            currentSong = songs.get(index);
-            this.currentIndex = index;
+    private void generationIndex(boolean mod) {
+        if (randomMode) {
+            int random = currentIndex;
+            while (random == currentIndex) {
+                random = (int) (Math.random() * (songs.size() - 1));
+            }
+            if (mod) {
+                this.nextIndex = random;
+            } else {
+                this.backIndex = random;
+            }
+
+        } else {
+            if (mod) {
+                int newcurrentIndex = (nextIndex + 1) % songs.size();
+                this.nextIndex = newcurrentIndex;
+
+            } else {
+                int newcurrentIndex = (backIndex - 1 + songs.size()) % songs.size();
+                this.backIndex = newcurrentIndex;
+
+            }
+        }
+
+    }
+
+    private void updateIndex(boolean mod) {
+        if (mod) {
+            backIndex = currentIndex;
+            currentIndex = nextIndex;
+
+        } else {
+            nextIndex = currentIndex;
+            currentIndex = backIndex;
+
+        }
+    }
+
+    public void setCurrentSong() {
+
+        if (currentIndex >= 0 && currentIndex < songs.size()) {
+            currentSong = songs.get(currentIndex);
         } else {
             System.out.println("Invalid file index.");
         }
@@ -94,29 +143,35 @@ public class MusicFileLoader {
             System.out.println("No tracks to play.");
             return;
         }
+        updateIndex(true);
+        setCurrentSong();
 
-        int newcurrentIndex = (currentIndex + 1) % songs.size();
-        setCurrentSong(newcurrentIndex);
+        StreamHandler.startStream(_ -> {
+            generationIndex(true);
+        });
+
         mp3ImageExtractor.updateImg(this, true);
     }
 
     public File nextFile() {
-        int currentIndexNew = (currentIndex + 1) % songs.size();
-        if (currentIndexNew >= 0 && currentIndexNew < songs.size()) {
-            return songs.get(currentIndexNew).getFile();
-        } else {
-            return null;
-        }
+        return songs.get(nextIndex).getFile();
+        // int currentIndexNew = (currentIndex + 1) % songs.size();
+        // if (currentIndexNew >= 0 && currentIndexNew < songs.size()) {
+        // return songs.get(currentIndexNew).getFile();
+        // } else {
+        // return null;
+        // }
 
     }
 
     public File backFile() {
-        int currentIndexNew = (currentIndex - 1 + songs.size()) % songs.size();
-        if (currentIndexNew >= 0 && currentIndexNew < songs.size()) {
-            return songs.get(currentIndexNew).getFile();
-        } else {
-            return null;
-        }
+        return songs.get(backIndex).getFile();
+        // int currentIndexNew = (currentIndex - 1 + songs.size()) % songs.size();
+        // if (currentIndexNew >= 0 && currentIndexNew < songs.size()) {
+        // return songs.get(currentIndexNew).getFile();
+        // } else {
+        // return null;
+        // }
 
     }
 
@@ -126,12 +181,14 @@ public class MusicFileLoader {
             return;
         }
 
-        int newcurrentIndex = (currentIndex - 1 + songs.size()) % songs.size();
-        setCurrentSong(newcurrentIndex);
+        updateIndex(false);
+        setCurrentSong();
+
+        StreamHandler.startStream(_ -> {
+            generationIndex(false);
+        });
         mp3ImageExtractor.updateImg(this, false);
     }
-
-
 
     public List<Song> getSongs() {
         return songs;
