@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import src.main.java.stream.StreamHandler;
-import java.util.stream.Stream;
 
 import com.mpatric.mp3agic.ID3v2;
 import com.mpatric.mp3agic.InvalidDataException;
@@ -23,7 +22,6 @@ public class MusicFileLoader {
     private int backIndex;
     private boolean randomMode = false;
 
-    // Конструктор класса, принимающий путь к директории
     public MusicFileLoader(String directoryPath, int index) throws UnsupportedTagException {
         this.directoryPath = directoryPath;
         this.currentIndex = index;
@@ -41,7 +39,6 @@ public class MusicFileLoader {
         if (tempFiles != null) {
             for (File file : tempFiles) {
                 try {
-                    // Создаем объект Song из метаданных файла
                     Song song = extractSongMetadata(file);
                     songs.add(song); // Добавляем песню в список
                     System.out.println("Loaded song: " + song.getTitle());
@@ -80,9 +77,8 @@ public class MusicFileLoader {
 
         }
 
-        long durationInSeconds = mp3file.getLengthInSeconds(); // Получаем длительность песни в секундах
+        long durationInSeconds = mp3file.getLengthInSeconds();
         System.out.println(durationInSeconds);
-        // Создаем объект Song и возвращаем его
         return new Song(title, artist, album, genre, year, durationInSeconds, file.getName(), file);
     }
 
