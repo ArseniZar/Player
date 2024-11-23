@@ -36,6 +36,29 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
         volumeControl = new VolumeControl(volume, this);
         musicFileLoader = new MusicFileLoader(folderMusic, 0);
         mp3ImageExtractor = new ImageExtractor(musicFileLoader);
+        progressBar();
+       
+    }
+
+
+    private void  progressBar(){
+        StreamHandler.startStreamWithWhile(_ -> {
+            try {
+                long totalDuration = musicFileLoader.getCurrentSong().getDurationInSeconds();
+
+                try {
+                    long currentPosition = player.getPosition();
+                    int progressPercent = (int) (((double) currentPosition / 1000) / totalDuration * 100);
+                    notifyObservers(observer -> observer.setProgressBar(progressPercent));
+                } catch (NullPointerException e) {
+                    notifyObservers(observer -> observer.setProgressBar(0));
+                }
+
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }, true);
     }
 
     public void start_Observer(MediaPlayerController mediaPlayerController) {
@@ -132,24 +155,6 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                     });
                 });
 
-                StreamHandler.startStreamWithWhile(_ -> {
-                    try {
-                        long totalDuration = musicFileLoader.getCurrentSong().getDurationInSeconds();
-
-                        try {
-                            long currentPosition = player.getPosition();
-                            int progressPercent = (int) (((double) currentPosition / 1000) / totalDuration * 100);
-                            notifyObservers(observer -> observer.setProgressBar(progressPercent));
-                        } catch (NullPointerException e) {
-                            notifyObservers(observer -> observer.setProgressBar(0));
-                        }
-
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }, true);
-
                 player.play();
 
             } catch (IOException | JavaLayerException e) {
@@ -168,7 +173,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
         });
 
     }
-
+    
     public void setPlaying(boolean isPlaying) {
         synchronized (this) {
             this.isPlaying = isPlaying;
