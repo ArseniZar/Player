@@ -5,9 +5,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.mpatric.mp3agic.UnsupportedTagException;
-import src.main.java.control.MediaPlayerController;
 import src.main.java.files.MusicFileLoader;
 import src.main.java.img.ImageExtractor;
 import src.main.java.img.ImageResources;
@@ -18,11 +18,9 @@ import src.main.java.interfaces.*;
 import src.main.java.interfaces.observer.*;
 import src.main.java.volume.VolumeControl;
 
-public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
-    private final List<Observer2> observers2 = new ArrayList<>();
+public class MediaPlayerModel implements Observable<MediaPlayerStateObserver> {
+    private final List<MediaPlayerStateObserver> observers = new ArrayList<>();
 
-    @SuppressWarnings("unused")
-    private MediaPlayerController mediaPlayerController;
     private VolumeControl volumeControl;
     private MusicFileLoader musicFileLoader;
     private ImageExtractor mp3ImageExtractor;
@@ -32,16 +30,15 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
     private volatile boolean random = false;
     // private int pausedFrame = 0;
 
-    public MediaPlayerModel(String folderMusic, int volume) throws UnsupportedTagException {
-        volumeControl = new VolumeControl(volume, this);
+    public MediaPlayerModel(String folderMusic) throws UnsupportedTagException {
+        volumeControl = new VolumeControl();
         musicFileLoader = new MusicFileLoader(folderMusic, 0);
         mp3ImageExtractor = new ImageExtractor(musicFileLoader);
         progressBar();
-       
+
     }
 
-
-    private void  progressBar(){
+    private void progressBar() {
         StreamHandler.startStreamWithWhile(_ -> {
             try {
                 long totalDuration = musicFileLoader.getCurrentSong().getDurationInSeconds();
@@ -49,9 +46,9 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
                 try {
                     long currentPosition = player.getPosition();
                     int progressPercent = (int) (((double) currentPosition / 1000) / totalDuration * 100);
-                    notifyObservers(observer -> observer.setProgressBar(progressPercent));
+                    notifyObservers(observer -> observer.onProgressUpdated(progressPercent));
                 } catch (NullPointerException e) {
-                    notifyObservers(observer -> observer.setProgressBar(0));
+                    notifyObservers(observer -> observer.onProgressUpdated(0));
                 }
 
                 Thread.sleep(1000);
@@ -61,55 +58,13 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
         }, true);
     }
 
-    public void start_Observer(MediaPlayerController mediaPlayerController) {
-        this.mediaPlayerController = mediaPlayerController;
-        mediaPlayerController.addObserver(new Observer1() {
-
-            @Override
-            public void onPlay() {
-                play();
-            }
-
-            @Override
-            public void onStop() {
-                pause();
-            }
-
-            @Override
-            public void setVolume(int level) {
-                volumeControl.setVolume(level);
-            }
-
-            @Override
-            public void onNext() {
-                next();
-            }
-
-            @Override
-            public void onBack() {
-                back();
-            }
-
-            @Override
-            public void roundMode() {
-                roundModes();
-            }
-
-            @Override
-            public void randomMode() {
-                randomModes();
-            }
-
-        });
-    }
-
     public void roundModes() {
 
         round = !round;
         StreamHandler.startStream(_ -> {
             notifyObservers(
                     observer -> observer
-                            .setImgButtonRound(round ? ImageResources.roundImgOn : ImageResources.roundImgOff));
+                            .onRepeatIconChanged(round ? ImageResources.roundImgOn : ImageResources.roundImgOff));
         });
     }
 
@@ -120,7 +75,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
         StreamHandler.startStream(_ -> {
             notifyObservers(
                     observer -> observer
-                            .setImgButtonRandom(random ? ImageResources.randomImgOn : ImageResources.randomImgOff));
+                            .onShuffleIconChanged(random ? ImageResources.randomImgOn : ImageResources.randomImgOff));
         });
     }
 
@@ -141,17 +96,42 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
 
         StreamHandler.startStream(_ -> {
             try (FileInputStream fileInputStream = new FileInputStream(currentFile)) {
+
+                // JavaSoundAudioDevice audioDevice = new JavaSoundAudioDevice() {
+                //     @Override
+                //     protected void createSource() throws JavaLayerException {
+                //         // 1. Вызываем родителя, чтобы он заполнил свой private source
+                //         super.createSource();
+
+                //         // 2. Достаем ту же самую созданную линию из AudioSystem по ее формату
+                //         try {
+                //             // Поскольку super.createSource() уже открыл и занес линию в систему,
+                //             // вытаскиваем активную SourceDataLine для нашего формата:
+                //             javax.sound.sampled.DataLine.Info info = getSourceLineInfo();
+                //             javax.sound.sampled.Line line = javax.sound.sampled.AudioSystem.getLine(info);
+
+                //             if (line instanceof javax.sound.sampled.SourceDataLine sourceLine) {
+                //                 // Передаем линию в VolumeControl
+                //                 volumeControl.setAudioLine(sourceLine);
+                //             }
+                //         } catch (Exception ignored) {
+                //             // Игнорируем, если не удалось перехватить
+                //         }
+                //     }
+                // };
+
                 player = new Player(fileInputStream);
+
                 setPlaying(true);
                 StreamHandler.startStream(_ -> {
-                    notifyObservers(observer -> observer.setImg(mp3ImageExtractor.getImg()));
+                    notifyObservers(observer -> observer.onCoverImageChanged(mp3ImageExtractor.getImg()));
 
                     StreamHandler.startStream(_ -> {
-                        notifyObservers(observer -> observer.setLabelTrack(currentTrack));
-                        notifyObservers(observer -> observer.setLabelAdditional(artist));
+                        notifyObservers(observer -> observer.onTrackTitleChanged(currentTrack));
+                        notifyObservers(observer -> observer.onArtistNameChanged(artist));
                     });
                     StreamHandler.startStream(_ -> {
-                        notifyObservers(observer -> observer.setImgButtonStartStop(ImageResources.stopImg));
+                        notifyObservers(observer -> observer.onPlayPauseIconChanged(ImageResources.stopImg));
                     });
                 });
 
@@ -163,7 +143,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
             } finally {
                 setPlaying(false);
                 if (player != null && player.isComplete()) {
-                    notifyObservers(observer -> observer.setImgButtonStartStop(ImageResources.playImg));
+                    notifyObservers(observer -> observer.onPlayPauseIconChanged(ImageResources.playImg));
                     if (round) {
                         next();
                     }
@@ -173,7 +153,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
         });
 
     }
-    
+
     public void setPlaying(boolean isPlaying) {
         synchronized (this) {
             this.isPlaying = isPlaying;
@@ -203,7 +183,7 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
             player.close();
             setPlaying(false);
             StreamHandler.startStream(_ -> {
-                notifyObservers(observer -> observer.setImgButtonStartStop(ImageResources.playImg));
+                notifyObservers(observer -> observer.onPlayPauseIconChanged(ImageResources.playImg));
             });
         } else {
             System.out.println("No music is playing.");
@@ -224,20 +204,24 @@ public class MediaPlayerModel implements Subject<Observer2, Action<Observer2>> {
         play();
     }
 
-    @Override
-    public void addObserver(Observer2 observer) {
-        observers2.add(observer);
+    public void setVolume(int level) {
+        volumeControl.setVolume(level);
     }
 
     @Override
-    public void removeObserver(Observer2 observer) {
-        observers2.remove(observer);
+    public void addObserver(MediaPlayerStateObserver observer) {
+        observers.add(observer);
     }
 
     @Override
-    public void notifyObservers(Action<Observer2> action) {
-        for (Observer2 observer : observers2) {
-            action.execute(observer);
+    public void removeObserver(MediaPlayerStateObserver observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Consumer<MediaPlayerStateObserver> action) {
+        for (MediaPlayerStateObserver observer : observers) {
+            action.accept(observer);
         }
     }
 

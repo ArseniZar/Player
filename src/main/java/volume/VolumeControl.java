@@ -1,103 +1,49 @@
 package src.main.java.volume;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
-import src.main.java.stream.StreamHandler;
-import src.main.java.model.MediaPlayerModel;
-
-
+import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.Line;
 
 public class VolumeControl {
-    private int volume = 0;
-    private volatile boolean isManualChange = false;
-    private MediaPlayerModel mediaPlayerModel;
 
-    public VolumeControl(int volume, MediaPlayerModel mediaPlayerModel) {
-        this.mediaPlayerModel = mediaPlayerModel;
-        this.volume = volume;
-        setVolume(volume);
-        startVolumeCheckInBackground();
-    }
+    private int currentVolume = 50;
+    private FloatControl gainControl;
 
-    public void setVolume(int newVolume) {
-        setIsManualChange(true);
-        adjustVolume((float) newVolume);
-        setIsManualChange(false);
-    }
-
-    public void adjustVolume(float volume) {
-        try {
-            String command = "amixer set Master " + volume + "%";
-            @SuppressWarnings("deprecation")
-            Process process = Runtime.getRuntime().exec(command);
-            process.waitFor(); // Дожидаемся завершения выполнения команды
-            this.volume = (int) volume;
-            System.out.println("Volume set to: " + volume + "%");
-        } catch (IOException | InterruptedException e) {
-            System.out.println("Error adjusting volume: " + e.getMessage());
+    public void setAudioLine(Line line) {
+        if (line != null && line.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            this.gainControl = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
+            applyVolumeToLine(this.currentVolume);
+        } else {
+            this.gainControl = null;
         }
     }
 
-    public static float getCurrentVolume() {
-        try {
-            String command = "amixer get Master";
-            @SuppressWarnings("deprecation")
-            Process process = Runtime.getRuntime().exec(command);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.contains("Mono") || line.contains("Front Left")) {
-                    // В строках amixer содержится информация о громкости
-                    // Пример строки: " Front Left: Playback 85 [85%] [on]"
-                    String[] tokens = line.split("\\[");
-                    if (tokens.length > 1) {
-                        String volumeString = tokens[1].replace("%]", "").trim();
-                        return Float.parseFloat(volumeString);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error getting volume: " + e.getMessage());
-        }
-        return -1; // Возвращаем -1 в случае ошибки
+    public void setVolume(int volume) {
+        this.currentVolume = Math.max(0, Math.min(100, volume));
+        applyVolumeToLine(this.currentVolume);
     }
 
-    public void startVolumeCheckInBackground() {
-        StreamHandler.startStreamWithWhile(_ -> {
-            if (!getIsManualChange()) {
-                try {
-                    float currentVolume = getCurrentVolume();
-                    if (currentVolume != -1) {
-                        if (currentVolume != volume) {
-                            this.volume = (int) currentVolume;
-                            mediaPlayerModel.notifyObservers(observer -> observer.setVolume(volume));
-                        }
-                    }
-                } catch (Exception e) {
-                    System.out.println("Error checking volume: " + e.getMessage());
-                }
-
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    System.out.println("Volume check thread interrupted: " + e.getMessage());
-                    return;
-                }
-            }
-        }, true);
+    public int getVolume() {
+        return currentVolume;
     }
 
-    public void setIsManualChange(boolean isManualChange) {
-        synchronized (this) {
-            this.isManualChange = isManualChange;
+    private void applyVolumeToLine(int volumePercent) {
+        System.out.println("Applying volume: " + volumePercent + "%");
+        if (gainControl == null) {
+            return;
         }
-    }
 
-    public boolean getIsManualChange() {
-        synchronized (this) {
-            return isManualChange;
+        if (volumePercent <= 0) {
+            gainControl.setValue(gainControl.getMinimum());
+            return;
         }
+
+        float minDb = gainControl.getMinimum();
+        float maxDb = gainControl.getMaximum(); 
+
+        float gain = (float) (Math.log10(volumePercent / 100.0) * 20.0);
+
+        float targetDb = Math.max(minDb, Math.min(maxDb, gain));
+
+        gainControl.setValue(targetDb);
     }
 }

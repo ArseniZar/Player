@@ -1,22 +1,24 @@
 package src.main.java.stream;
-import src.main.java.interfaces.Action;
+
+import java.util.function.Consumer;
+
 public class StreamHandler {
     private static boolean isGood = true;
 
-    public static <T> void startStream(Action<T> action) {
+    public static <T> void startStream(Consumer<T> action) {
         if (isGood) {
             new Thread(() -> {
-                action.execute(null);
+                action.accept(null);
             }).start();
         }
     }
 
-    public static <T> void startStreamWithWhile(Action<T> action , boolean index) {
+    public static <T> void startStreamWithWhile(Consumer<T> action, boolean index) {
         if (isGood) {
             new Thread(() -> {
                 while (isGood && index) {
 
-                    action.execute(null);
+                    action.accept(null);
                 }
             }).start();
         }
@@ -26,6 +28,4 @@ public class StreamHandler {
         isGood = false;
     }
 
-
-    
 }
