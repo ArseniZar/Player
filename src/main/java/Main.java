@@ -17,5 +17,5 @@ public class Main {
         MediaPlayerModel model = new MediaPlayerModel(FOLDER_MUSIC);
         MediaPlayerController _ = new MediaPlayerController(view, model);
 
-    }
+    } 
 }
